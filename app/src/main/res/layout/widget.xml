@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetMainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/widget_margin"
+    android:background="#FFFFFF" >
+
+    <LinearLayout
+        android:id="@+id/widgetLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/until_logout_title"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:text="距離返陽還有" />
+
+        <TextView
+            android:id="@+id/until_logout_text"
+            android:textSize="15sp"
+            android:textColor="@color/com_facebook_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="天" />
+        
+        <TextView
+            android:id="@+id/logout_percent_title"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:paddingTop="0dp"
+            android:text="退伍令下載進度" />
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+            
+            <TextView
+                android:id="@+id/login_percent_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="%"
+                android:layout_marginRight="5dp"
+                android:paddingEnd="2dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/com_facebook_blue" />
+            
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
