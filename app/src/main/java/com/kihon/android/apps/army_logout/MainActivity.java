@@ -1,30 +1,19 @@
 package com.kihon.android.apps.army_logout;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.SimpleTimeZone;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.facebook.FacebookRequestError;
+import com.facebook.HttpMethod;
+import com.facebook.Request;
+import com.facebook.RequestAsyncTask;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.model.GraphUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.IBinder;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -36,15 +25,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.ActivityCompat;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.SpannableString;
@@ -52,7 +45,6 @@ import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -70,13 +62,29 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.SimpleTimeZone;
+
+import biz.kasual.materialnumberpicker.MaterialNumberPicker;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 	
@@ -106,19 +114,34 @@ public class MainActivity extends AppCompatActivity {
 	private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
 	private boolean pendingPublishReauthorization = false;
 
-	private TextView mTvUntilLogoutDays;
-	private TextView mTvUntilLogoutTitle;
-	private TextView mTvUsername;
-	private TextView mTvStatus;
-	private static Button mBtnLoginDate;
-	private ProgressBar mProgressBarLogin;
-	private ProgressBar mProgressBarFbConnect;
-	private TextView mTvLoginPrecent;
-	private EditText mEtDeleteDay;
-	private Spinner mSpinnerServicDay;
-	private static TextView mTvLogoutDate;
-	private LinearLayout mBreakMonthBlock;
-	private TextView mBreakMonthTextView;
+	@BindView(R.id.until_logout_days_text)
+	TextView mTvUntilLogoutDays;
+	@BindView(R.id.until_logout_title_text)
+	TextView mTvUntilLogoutTitle;
+	@BindView(R.id.welcome_user_text)
+	TextView mTvUsername;
+	@BindView(R.id.welcome_user_text2)
+	TextView mTvStatus;
+	@BindView(R.id.login_date_btn)
+    Button mBtnLoginDate;
+	@BindView(R.id.login_progressBar)
+	ProgressBar mProgressBarLogin;
+	@BindView(R.id.progressBar_connect_facebook)
+	ProgressBar mProgressBarFbConnect;
+	@BindView(R.id.login_Percent)
+	TextView mTvLoginPercent;
+//	@BindView(R.id.delete_day_edittext)
+//	EditText mEtDeleteDay;
+	@BindView(R.id.delete_day_button)
+	Button mDeleteDayButton;
+	@BindView(R.id.service_day_spinner)
+	Spinner mSpinnerServiceDay;
+	@BindView(R.id.logout_date_textview)
+    TextView mTvLogoutDate;
+	@BindView(R.id.break_month_block)
+	LinearLayout mBreakMonthBlock;
+	@BindView(R.id.braak_month_text)
+	TextView mBreakMonthTextView;
 	
 	
 	//private int total_day = 365;
@@ -150,9 +173,9 @@ public class MainActivity extends AppCompatActivity {
     public final static int RANGE_CUSTOM = 3;
     
 	/**
-	 * 
+	 *
 	 */
-	
+
     Bitmap bmScreen;
     RelativeLayout mLayout;
     Dialog screenDialog;
@@ -179,16 +202,7 @@ public class MainActivity extends AppCompatActivity {
     private static boolean service_year = true;
     private Handler mCheckNetWorkStatusHandler = new Handler();
     public static boolean NETWORK_CONNECTED = false;
-   
-    
-    private String[] mNavigationDrawerTitles;
-    private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-    
-    private CharSequence mDrawerTitle;
-    private CharSequence mTitle;
-    private ActionBarDrawerToggle mDrawerToggle;
-    
+
     private boolean mBeforeHoneycomb = true;
     
     /**
@@ -201,38 +215,36 @@ public class MainActivity extends AppCompatActivity {
 	private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
 	private String mCustomServiceRangeText = null;
 	private ArrayAdapter<String> mServiceDayAdapter;
-	
+
 	protected String mFacebookCountTimeText;
-    
-	@Override
+
+
+	/**
+	 *
+	 */
+	@BindView(R.id.toolbar)
+	Toolbar mToolbar;
+
+    private int mDeleteDay;
+
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		Log.d(TAG, "Build.VERSION.SDK_INT:" + Build.VERSION.SDK_INT);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			mBeforeHoneycomb = false;
-		}
-		
-		findViews();
-		restorePrefs();
+		ButterKnife.bind(this);
+
+		setSupportActionBar(mToolbar);
+
+        mBreakMonthBlock.setVisibility(View.GONE);
+
+        restorePrefs();
 		loadUserData();
 		setListeners();
-		
-		if (savedInstanceState == null) {
-		}
         
 		ChangeLog cl = new ChangeLog(this);
 		if (cl.firstRun())
 			cl.getLogDialog().show();
 
-	}
-	
-	private class DrawerItemClickListener implements ListView.OnItemClickListener {
-	    @Override
-	    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-	        selectItem(position);
-	    }
 	}
 
 	/** Swaps fragments in the main content view */
@@ -252,90 +264,6 @@ public class MainActivity extends AppCompatActivity {
 		default:
 			break;
 		}
-		mDrawerList.setItemChecked(position, false);
-		mDrawerLayout.closeDrawer(mDrawerList);
-	}
-
-	@Override
-	public void setTitle(CharSequence title) {
-	    mTitle = title;
-	    getSupportActionBar().setTitle(mTitle);
-	}
-	
-	
-	private void findViews() {
-		mTvUsername = (TextView) findViewById(R.id.welcome_user_text);
-		mTvStatus = (TextView) findViewById(R.id.welcome_user_text2);
-		mProgressBarFbConnect = (ProgressBar) findViewById(R.id.progressBar_connect_facebook);
-		
-		mBtnLoginDate = (Button) findViewById(R.id.login_date_btn);
-		
-		mEtDeleteDay = (EditText) findViewById(R.id.delete_day_edittext);
-		mSpinnerServicDay = (Spinner) findViewById(R.id.service_day_spinner);
-		
-		mTvLogoutDate = (TextView) findViewById(R.id.logout_date_textview);
-		
-		mTvUntilLogoutTitle = (TextView) findViewById(R.id.until_logout_title_text);
-		mTvUntilLogoutDays = (TextView) findViewById(R.id.until_logout_days_text);
-		
-		mBreakMonthBlock = (LinearLayout) findViewById(R.id.break_month_block);
-		mBreakMonthTextView = (TextView) findViewById(R.id.braak_month_text);
-		
-		mProgressBarLogin = (ProgressBar) findViewById(R.id.login_progressBar);
-		mTvLoginPrecent = (TextView) findViewById(R.id.login_Percent);
-		
-		mTitle = mDrawerTitle = getTitle();
-		mNavigationDrawerTitles = getResources().getStringArray(R.array.drawer_list_array);
-		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		mDrawerList = (ListView) findViewById(R.id.left_drawer);
-
-		// set a custom shadow that overlays the main content when the drawer opens
-        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-		// Set the adapter for the list view
-		mDrawerList.setAdapter(new ArrayAdapter<String>(this, mBeforeHoneycomb ? android.R.layout.simple_list_item_1 : R.layout.drawer_list_item, mNavigationDrawerTitles));
-		// Set the list's click listener
-		mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
-		
-		// enable ActionBar app icon to behave as action to toggle nav drawer
-//		if (android.os.Build.VERSION.SDK_INT >= 11){
-			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-			getSupportActionBar().setHomeButtonEnabled(true);
-//		}
-        
-		
-        // ActionBarDrawerToggle ties together the the proper interactions
-        // between the sliding drawer and the action bar app icon
-        mDrawerToggle = new ActionBarDrawerToggle(
-                this,                  /* host Activity */
-                mDrawerLayout,         /* DrawerLayout object */
-                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
-                R.string.drawer_open,  /* "open drawer" description for accessibility */
-                R.string.drawer_close  /* "close drawer" description for accessibility */
-                ) {
-            public void onDrawerClosed(View view) {
-            	getSupportActionBar().setTitle(mTitle);
-//                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            	    invalidateOptionsMenu(); 
-            	} else {
-            		ActivityCompat.invalidateOptionsMenu(getParent());	
-            	}
-            }
-
-            public void onDrawerOpened(View drawerView) {
-            	getSupportActionBar().setTitle(mDrawerTitle);
-//                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            	    invalidateOptionsMenu(); 
-            	} else {
-            		ActivityCompat.invalidateOptionsMenu(getParent());	
-            	}
-            	
-            }
-        };
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-		mBreakMonthBlock.setVisibility(View.GONE);
 	}
 
 	private void setListeners() {
@@ -362,40 +290,38 @@ public class MainActivity extends AppCompatActivity {
 				alertDialog.show();
 			}
 		});
-		
-		mEtDeleteDay.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-			}
 
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-			}
+        final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(MainActivity.this)
+                .minValue(1)
+                .maxValue(30)
+                .defaultValue(mDeleteDay)
+                .backgroundColor(Color.WHITE)
+                .separatorColor(Color.TRANSPARENT)
+                .textColor(Color.BLACK)
+                .textSize(20)
+                .enableFocusability(false)
+                .wrapSelectorWheel(true)
+                .build();
 
-			@Override
-			public void afterTextChanged(Editable s) {
-				String del_days = mEtDeleteDay.getText().toString().trim();
-				if (del_days.equals("")) {
-					mEtDeleteDay.setText("0");
-					mEtDeleteDay.selectAll();
-				}
-				sDeleteDays = mEtDeleteDay.getText().toString().trim();
-				loadUserData();
-			}
-		});
+        mDeleteDayButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(MainActivity.this)
+                        .customView(numberPicker,false)
+                        .title("折抵天數")
+                        .positiveText(android.R.string.ok)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+								mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
+                                mDeleteDay = numberPicker.getValue();
+                                loadUserData();
+                            }
+                        })
+                        .show();
+            }
+        });
 
-		mEtDeleteDay.setOnEditorActionListener(new OnEditorActionListener() {
-			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				if (event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-					InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-					in.hideSoftInputFromWindow(v.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-					return true;
-				}
-				return false;
-			}
-		});
-		
 		/**
 		 *  自訂役期下拉選單初始化及設定監聽器
 		 *  
@@ -409,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
 //		serviceDayAdapter = ArrayAdapter.createFromResource(this, R.array.service_day, android.R.layout.simple_spinner_item);
 		mServiceDayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, mServiceRangeArrayList);
-		mSpinnerServicDay.setAdapter(mServiceDayAdapter);
+		mSpinnerServiceDay.setAdapter(mServiceDayAdapter);
 		mServiceDayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		
 		if(mCustomServiceRange){
@@ -418,10 +344,10 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		if (sIntServiceRange != RANGE_DEFAULT_ONE_YEAR) {
-			mSpinnerServicDay.setSelection(sIntServiceRange);
+			mSpinnerServiceDay.setSelection(sIntServiceRange);
 		}
 		
-		mSpinnerServicDay.setOnItemSelectedListener(new OnItemSelectedListener() {
+		mSpinnerServiceDay.setOnItemSelectedListener(new OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 				sIntServiceRange = position;
@@ -568,25 +494,28 @@ public class MainActivity extends AppCompatActivity {
 //		mCountDownTimer.cancel();
 		mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
 		mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
-		
-		// Save user preferences. use Editor object to make changes.
-		SharedPreferences settings = getSharedPreferences(PREF, 0);
-		settings.edit()
-				.putString(PREF_LOGINDATE, sLoginDate)
-//				.putString(PREF_SERVICEDAY, field_height.getText().toString())
-				.putString(PREF_DELETEDAY, mEtDeleteDay.getText().toString().trim())
-				.putString(PREF_USERNAME, USER_FB_NAME)
-				.putLong(PREF_LOGINMILLIS, mLoginDateCalendar.getTimeInMillis())
-				.putLong(PREF_LOGOUTMILLIS, mLogoutDateCalendar.getTimeInMillis())
-//				.putInt(PREF_WIDGETBGCOLOR, sWidgetColors)
-				.putInt(PREF_SERVICERANGE, mSpinnerServicDay.getSelectedItemPosition())
-				.putString(PREF_CUSTOM_SERVICERANGE_YEAR, sCustomServiceRangeArray[0])
-				.putString(PREF_CUSTOM_SERVICERANGE_MONTH, sCustomServiceRangeArray[1])
-				.putString(PREF_CUSTOM_SERVICERANGE_DAY, sCustomServiceRangeArray[2])
-				.commit();
+
+        savePrefs();
 	}
-	
-	private Runnable mRefreshInformationRunnable = new Runnable() {
+
+    private void savePrefs() {
+        SharedPreferences settings = getSharedPreferences(PREF, 0);
+        settings.edit()
+                .putString(PREF_LOGINDATE, sLoginDate)
+//				.putString(PREF_SERVICEDAY, field_height.getText().toString())
+                .putString(PREF_DELETEDAY, String.valueOf(mDeleteDay))
+                .putString(PREF_USERNAME, USER_FB_NAME)
+                .putLong(PREF_LOGINMILLIS, mLoginDateCalendar.getTimeInMillis())
+                .putLong(PREF_LOGOUTMILLIS, mLogoutDateCalendar.getTimeInMillis())
+//				.putInt(PREF_WIDGETBGCOLOR, sWidgetColors)
+                .putInt(PREF_SERVICERANGE, mSpinnerServiceDay.getSelectedItemPosition())
+                .putString(PREF_CUSTOM_SERVICERANGE_YEAR, sCustomServiceRangeArray[0])
+                .putString(PREF_CUSTOM_SERVICERANGE_MONTH, sCustomServiceRangeArray[1])
+                .putString(PREF_CUSTOM_SERVICERANGE_DAY, sCustomServiceRangeArray[2])
+                .apply();
+    }
+
+    private Runnable mRefreshInformationRunnable = new Runnable() {
 		
 		private String mCountTimeText = null;
 		private Calendar mCalendar = Calendar.getInstance(new SimpleTimeZone(0, "GMT"));
@@ -625,7 +554,7 @@ public class MainActivity extends AppCompatActivity {
 			StringBuffer buffer = new StringBuffer();
 			
 			if (mLoginDateCalendar.getTimeInMillis() <= System.currentTimeMillis()
-					&& (mSpinnerServicDay.getSelectedItemPosition() == 3) || mSpinnerServicDay.getSelectedItemPosition() == 2) {
+					&& (mSpinnerServiceDay.getSelectedItemPosition() == 3) || mSpinnerServiceDay.getSelectedItemPosition() == 2) {
 				if((mCalendar.get(Calendar.YEAR) - 1970) != 0){
 					buffer.append((mCalendar.get(Calendar.YEAR) - 1970) + "年");
 					buffer.append((mCalendar.get(Calendar.MONTH)+1) + "個月");	
@@ -657,11 +586,11 @@ public class MainActivity extends AppCompatActivity {
 			sLoginPercent = (float) (( doubleLoginPassDay / (mLogoutDateCalendar.getTimeInMillis() - mLoginDateCalendar.getTimeInMillis())) * 100f);
 			String percentText = new DecimalFormat("#.##").format(sLoginPercent);
 			if(sLoginPercent >= 100){
-				mTvLoginPrecent.setText("100%");
+				mTvLoginPercent.setText("100%");
 			} else if (sLoginPercent <= 0) {
-				mTvLoginPrecent.setText("0%");
+				mTvLoginPercent.setText("0%");
 			} else {
-				mTvLoginPrecent.setText(percentText + "%");
+				mTvLoginPercent.setText(percentText + "%");
 			}
 			
 			
@@ -712,7 +641,8 @@ public class MainActivity extends AppCompatActivity {
        
 		if (!"".equals(prefDeleteDays)) {
 			sDeleteDays = prefDeleteDays;
-			mEtDeleteDay.setText(sDeleteDays);
+            mDeleteDay = Integer.valueOf(sDeleteDays);
+            mDeleteDayButton.setText(sDeleteDays);
 		} else {
 			sDeleteDays = "0";
 		}
@@ -730,10 +660,10 @@ public class MainActivity extends AppCompatActivity {
         mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
     }
     
-    private static void loadUserData(){
+    private void loadUserData(){
 		try {
 			mLoginDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd" ,new Locale("TAIWAN")).parse(sLoginDate));
-			int minusday = Integer.valueOf(sDeleteDays);
+			int minusDay = mDeleteDay;
 			mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd" ,new Locale("TAIWAN")).parse(sLoginDate));
 			
 			switch(sIntServiceRange){
@@ -756,7 +686,7 @@ public class MainActivity extends AppCompatActivity {
 				break;
 			}
 			
-			mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, -minusday);
+			mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, -minusDay);
 			
 			if(mLoginDateCalendar.getTimeInMillis() < System.currentTimeMillis()){
 				login_yet = true;
@@ -818,7 +748,7 @@ public class MainActivity extends AppCompatActivity {
 	        } else {
 		        postParams.putString("name", "放假時間是很珍貴的!");
 		        postParams.putString("caption", "請愛護服役人員");
-				postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPrecent.getText() + "了");
+				postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
 		        postParams.putString("link", "https://play.google.com/store/apps/details?id=com.kihon.android.apps.army_logout");
 		        postParams.putString("picture", "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc1/s160x160/481191_436050169810593_1810179700_a.png");
 	        }
@@ -947,7 +877,7 @@ public class MainActivity extends AppCompatActivity {
 	    }
 	}
 	
-	public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
+	/*public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -969,7 +899,7 @@ public class MainActivity extends AppCompatActivity {
 			sLoginDate = login_date;
 			loadUserData();
 		}
-	}
+	}*/
 
 	public void showDatePickerDialog(View v) {
 //		DialogFragment newFragment = new DatePickerFragment();
@@ -995,25 +925,9 @@ public class MainActivity extends AppCompatActivity {
 		DatePickerDialog pickerDialog = new DatePickerDialog(this, callBack, year, monthOfYear, dayOfMonth);
 		pickerDialog.show();
 	}
-		
-    /* Called whenever we call invalidateOptionsMenu() */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        // If the nav drawer is open, hide action items related to the content view
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-        menu.findItem(R.id.action_change_widger_bgcolor).setVisible(!drawerOpen);
-        menu.findItem(R.id.action_changelog).setVisible(!drawerOpen);
-        return super.onPrepareOptionsMenu(menu);
-    }
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// The action bar home/up action should open or close the drawer.
-		// ActionBarDrawerToggle will take care of this.
-		if (mDrawerToggle.onOptionsItemSelected(item)) {
-			return true;
-		}
-		
 		switch (item.getItemId()) {
 		case R.id.action_share:
 			return true;
@@ -1075,8 +989,9 @@ public class MainActivity extends AppCompatActivity {
 	        	alert.show();       
 			 */
 
-			screen = (View) findViewById(R.id.logout_information);
-			screen.setDrawingCacheEnabled(true);
+			screen = findViewById(R.id.logout_information);
+            assert screen != null;
+            screen.setDrawingCacheEnabled(true);
 			bmScreen = screen.getDrawingCache();
 			saveImage(bmScreen);
 			screen.setDrawingCacheEnabled(false);
@@ -1168,11 +1083,11 @@ public class MainActivity extends AppCompatActivity {
 		imm.hideSoftInputFromWindow(iBinder, 0);
 	}
 
-	private void sendRequestDialog() {
+	/*private void sendRequestDialog() {
 		Bundle params = new Bundle();
 		params.putString("message", "期待我們早日回陽間生活吧!!");
 
-		WebDialog requestsDialog = (new WebDialog.RequestsDialogBuilder(MainActivity.this, Session.getActiveSession(), params)).setOnCompleteListener(new OnCompleteListener() {
+		WebDialog requestsDialog = (new WebDialog.RequestsDialogBuilder(MainActivity.this, Session.getActiveSession(), params)).setOnCompleteListener(new WebDialog.OnCompleteListener() {
 
 			@Override
 			public void onComplete(Bundle values, FacebookException error) {
@@ -1193,11 +1108,8 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}).setMessage("載入中...").build();
 		requestsDialog.show();
-	}
-	
-	/**
-	 * TODO
-	 */
+	}*/
+
 
 	@SuppressLint("ValidFragment")
 	public class CustomRangeDialogFragment extends DialogFragment {
@@ -1320,7 +1232,7 @@ public class MainActivity extends AppCompatActivity {
 				if (mServiceRangeArrayList.size() != RANGE_CUSTOM)
 					mServiceRangeArrayList.remove(RANGE_CUSTOM);
 				mServiceDayAdapter.add(calCustomServiceRange(sCustomServiceRangeArray));
-				mSpinnerServicDay.setSelection(RANGE_CUSTOM);
+				mSpinnerServiceDay.setSelection(RANGE_CUSTOM);
 			} else if (mServiceRangeArrayList.size() != RANGE_CUSTOM) {
 				mServiceRangeArrayList.remove(RANGE_CUSTOM);
 			}
@@ -1338,27 +1250,8 @@ public class MainActivity extends AppCompatActivity {
 		spinnerText.append(!rangeArr[0].equals("0") ? rangeArr[0] + "年" : "");
 		spinnerText.append(!rangeArr[1].equals("0") ? rangeArr[1] + "個月" : "");
 		spinnerText.append(!rangeArr[2].equals("0") ? rangeArr[2] + "天" : "");
-		mCustomServiceRange = spinnerText.toString().equals("") ? false : true;
+		mCustomServiceRange = !spinnerText.toString().equals("");
 		return spinnerText.toString(); 
 	}
-	
-	/**
-	 * 
-	 */
-	
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
-    }
-
-
-	@Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggls
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
 
 }

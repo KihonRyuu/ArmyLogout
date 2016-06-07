@@ -4,5 +4,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="widget_margin">8dip</dimen>
+    <dimen name="com_facebook_loginview_text_size">14sp</dimen>
 
 </resources>
