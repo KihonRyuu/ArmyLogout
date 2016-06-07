@@ -32,13 +32,13 @@
         <item>一年15天</item>
         <item>自訂</item>
     </string-array>
-    
+
     <string-array name="drawer_list_array">
         <item>自訂役期</item>
         <item>更改小工具背景</item>
         <item>更新日誌</item>
     </string-array>
-    
+
     <string-array name="widget_color_picker_list_array">
         <item>小工具背景</item>
         <item>小工具文字標題</item>
@@ -47,5 +47,7 @@
 
     <string name="take_picture">拍攝相片</string>
     <string name="picture_select">選擇相片</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 
 </resources>
