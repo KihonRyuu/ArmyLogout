@@ -25,6 +25,7 @@
 
             <at.grabner.circleprogress.CircleProgressView
                 android:id="@+id/circleView"
+                android:visibility="gone"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 CircleProgressView:cpv_autoTextSize="true"
@@ -45,6 +46,13 @@
                 CircleProgressView:cpv_unitScale="1"
                 CircleProgressView:cpv_value="10" />
 
+            <com.github.OrangeGangsters.circularbarpager.library.CircularBarPager
+                android:id="@+id/circularBarPager"
+                android:layout_height="250dp"
+                android:layout_width="match_parent"
+                android:paddingLeft="30dp"
+                android:paddingRight="30dp"
+                style="@style/CircularBarPagerStyle"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

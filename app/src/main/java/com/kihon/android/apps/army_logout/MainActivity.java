@@ -10,7 +10,11 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
+import com.github.OrangeGangsters.circularbarpager.library.CircularBarPager;
+import com.viewpagerindicator.CirclePageIndicator;
 
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,6 +41,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -81,7 +87,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.SimpleTimeZone;
 
 import at.grabner.circleprogress.AnimationState;
 import at.grabner.circleprogress.AnimationStateChangedListener;
@@ -92,7 +97,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
-	
+
     public static final String PREF = "ARMY_LOGOUT_PREF";
     public static final String PREF_LOGINDATE = "ARMY_LOGOUT_LoginDate";
     public static final String PREF_SERVICEDAY = "ARMY_LOGOUT_ServiceDay";
@@ -114,62 +119,68 @@ public class MainActivity extends AppCompatActivity {
     public final static int RANGE_ONE_YEAR_FIFTEEN = 2;
     public final static int RANGE_CUSTOM = 3;
     static final int ID_SCREENDIALOG = 1;
-	private static final String TAG = "MainActivity";
-	private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
-	private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
-	private final static Calendar mLoginDateCalendar = Calendar.getInstance();
+    private static final String TAG = "MainActivity";
+    private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
+    private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
+    private final static Calendar mLoginDateCalendar = Calendar.getInstance();
+    /**
+     * The animation time in milliseconds that we take to display the steps taken
+     */
+    private static final int BAR_ANIMATION_TIME = 1000;
     public static boolean NETWORK_CONNECTED = false;
-	//private int total_day = 365;
-	protected static float sLoginPercent;
-	protected static int sLogoutYear = 0;
-	protected static int sLogoutDay = 0;
+    //private int total_day = 365;
+    protected static float sLoginPercent;
+    protected static int sLogoutYear = 0;
+    protected static int sLogoutDay = 0;
     static boolean login_yet = false;
-	private static Calendar mLogoutDateCalendar = Calendar.getInstance();
-	private static String sLoginDate = null;
-//	private static String LOGOUT_TIME = null;
-	private static String sDeleteDays = null;
-	private static String USER_FB_NAME = "弟兄";
+    private static Calendar mLogoutDateCalendar = Calendar.getInstance();
+    private static String sLoginDate = null;
+    //	private static String LOGOUT_TIME = null;
+    private static String sDeleteDays = null;
+    private static String USER_FB_NAME = "弟兄";
     private static int sIntServiceRange = 0;
     private static boolean service_year = true;
     /**
      * 自訂役期
      */
 
-	private static String[] sCustomServiceRangeArray = new String[] { "4", "0", "0" };
-	protected String mFacebookCountTimeText;
-	@BindView(R.id.until_logout_days_text)
-	TextView mTvUntilLogoutDays;
-	@BindView(R.id.until_logout_title_text)
-	TextView mTvUntilLogoutTitle;
-//	public static int LOGIN_PASS_DAY = 0;
-	@BindView(R.id.welcome_user_text)
-	TextView mTvUsername;
-	@BindView(R.id.welcome_user_text2)
-	TextView mTvStatus;
-	@BindView(R.id.login_date_btn)
+    private static String[] sCustomServiceRangeArray = new String[]{"4", "0", "0"};
+    protected String mFacebookCountTimeText;
+    @BindView(R.id.until_logout_days_text)
+    TextView mTvUntilLogoutDays;
+    @BindView(R.id.until_logout_title_text)
+    TextView mTvUntilLogoutTitle;
+    //	public static int LOGIN_PASS_DAY = 0;
+    @BindView(R.id.welcome_user_text)
+    TextView mTvUsername;
+    @BindView(R.id.welcome_user_text2)
+    TextView mTvStatus;
+    @BindView(R.id.login_date_btn)
     Button mBtnLoginDate;
-	@BindView(R.id.login_progressBar)
-	ProgressBar mProgressBarLogin;
-	@BindView(R.id.progressBar_connect_facebook)
-	ProgressBar mProgressBarFbConnect;
-	@BindView(R.id.login_Percent)
-	TextView mTvLoginPercent;
-//    private static int sWidgetColors = -1;
+    @BindView(R.id.login_progressBar)
+    ProgressBar mProgressBarLogin;
+    @BindView(R.id.progressBar_connect_facebook)
+    ProgressBar mProgressBarFbConnect;
+    @BindView(R.id.login_Percent)
+    TextView mTvLoginPercent;
+    //    private static int sWidgetColors = -1;
 //	@BindView(R.id.delete_day_edittext)
 //	EditText mEtDeleteDay;
-	@BindView(R.id.delete_day_button)
-	Button mDeleteDayButton;
-	@BindView(R.id.service_day_spinner)
-	Spinner mSpinnerServiceDay;
-	@BindView(R.id.logout_date_textview)
+    @BindView(R.id.delete_day_button)
+    Button mDeleteDayButton;
+    @BindView(R.id.service_day_spinner)
+    Spinner mSpinnerServiceDay;
+    @BindView(R.id.logout_date_textview)
     TextView mTvLogoutDate;
-	@BindView(R.id.break_month_block)
-	LinearLayout mBreakMonthBlock;
-	@BindView(R.id.braak_month_text)
-	TextView mBreakMonthTextView;
-	/**
-	 *
-	 */
+    @BindView(R.id.break_month_block)
+    LinearLayout mBreakMonthBlock;
+    @BindView(R.id.braak_month_text)
+    TextView mBreakMonthTextView;
+    @BindView(R.id.circularBarPager)
+    CircularBarPager mCircularBarPager;
+    /**
+     *
+     */
 
     Bitmap bmScreen;
     RelativeLayout mLayout;
@@ -180,178 +191,191 @@ public class MainActivity extends AppCompatActivity {
 
     View screen;
     EditText EditTextIn;
-	/**
-	 *
-	 */
-	@BindView(R.id.toolbar)
-	Toolbar mToolbar;
+    /**
+     *
+     */
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
     @BindView(R.id.circleView)
     CircleProgressView mCircleView;
-	private Button shareButton;
-	private boolean pendingPublishReauthorization = false;
-	private Handler mRefreshInformationHandler = new Handler();
-	private ProgressDialog mProgressDialog;
-	private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss" ,new Locale("TAIWAN"));
+    private Button shareButton;
+    private boolean pendingPublishReauthorization = false;
+    private Handler mRefreshInformationHandler = new Handler();
+    private ProgressDialog mProgressDialog;
+    private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", new Locale("TAIWAN"));
     private byte[] photo_data = null;
     /**
-     *  DrawerLayout
+     * DrawerLayout
      *
-     *  @date 2013-11-19
-     *  @author kihon
+     * @date 2013-11-19
+     * @author kihon
      */
 
     private ViewGroup mContainerView;
     private Handler mCheckNetWorkStatusHandler = new Handler();
     private boolean mBeforeHoneycomb = true;
     private boolean mCustomServiceRange = false;
-	private ArrayList<String> mServiceRangeArrayList = new ArrayList<String>();
-	private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
-	private String mCustomServiceRangeText = null;
-	private ArrayAdapter<String> mServiceDayAdapter;
+    private ArrayList<String> mServiceRangeArrayList = new ArrayList<>();
+    private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
+    private String mCustomServiceRangeText = null;
+    private ArrayAdapter<String> mServiceDayAdapter;
     private int mDeleteDay;
-	private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
+    private String mCountTimeText;
 
-		@Override
-		public void run() {
-			NETWORK_CONNECTED = checkNetwork();
-		}
-	};
+    private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            NETWORK_CONNECTED = checkNetwork();
+        }
+    };
+    private ServiceUtil mServiceUtil;
+    private DemoView[] mDemoViews;
+    private ServiceTime mServiceTime = ServiceTime.ONE_YEAR;
     private Runnable mRefreshInformationRunnable = new Runnable() {
 
-		private String mCountTimeText = null;
-		private Calendar mCalendar = Calendar.getInstance(new SimpleTimeZone(0, "GMT"));
+        @Override
+        public void run() {
 
-		@Override
-		public void run() {
-//			Log.d(TAG, "mRefreshInformationRunnable");
+            mServiceUtil = new ServiceUtil(mLoginDateCalendar.getTimeInMillis(), mServiceTime, mDeleteDay);
 
-			/**
-			 *  20130408 - 入伍倒數
-			 */
+            if (mServiceUtil.isLoggedIn()) {
+                mTvUntilLogoutTitle.setText("距離退伍還剩下");
+                mTvStatus.setText("你入伍已經" + mServiceUtil.getPassedDay() + "天了嘿~ ");
+            } else {
+                mBreakMonthBlock.setVisibility(View.GONE);
+                mTvUntilLogoutTitle.setText("距離入伍還剩下");
+                mTvStatus.setText("準備好踏入陰間了嗎？");
+            }
 
-			long diffInMillis = 0;
-			int loginPassDay = 0;
-			int currentYear = mCalendar.get(Calendar.YEAR);
+            String percentText = new DecimalFormat("#.#").format(mServiceUtil.getPercentage());
+            if (mServiceUtil.getPercentage() >= 100.0f) {
+                mTvLoginPercent.setText("100%");
+            } else if (mServiceUtil.getPercentage() <= 0.0f) {
+                mTvLoginPercent.setText("0%");
+            } else {
+                mTvLoginPercent.setText(percentText + "%");
+            }
 
-			if (mLoginDateCalendar.getTimeInMillis() > System.currentTimeMillis()) {
-				diffInMillis = mLoginDateCalendar.getTimeInMillis() - System.currentTimeMillis();
+            for (int i = 0; i < mDemoViews.length; i++) {
+                TextView valueInfoTextView = mDemoViews[i].mValueInfoTextview;
+                TextView userBottomTextView = mDemoViews[i].mUserBottomTextview;
+                switch (i) {
+                    case 0:
+                        userBottomTextView.setVisibility(View.GONE);
+                        String valueInfoText = new DecimalFormat("#.##").format(mServiceUtil.getPercentage());
+                        if (mServiceUtil.getPercentage() >= 100.0f) {
+                            valueInfoTextView.setText("100%");
+                        } else if (mServiceUtil.getPercentage() <= 0.0f) {
+                            valueInfoTextView.setText("0%");
+                        } else {
+                            valueInfoTextView.setText(String.format("%s%%", valueInfoText));
+                        }
+                        break;
+                    case 1:
+                        userBottomTextView.setVisibility(View.VISIBLE);
+                        PeriodFormatter formatter = new PeriodFormatterBuilder()
+                                .printZeroAlways().appendDays().appendSuffix("天")
+                                .toFormatter();
+                        valueInfoTextView.setText(mServiceUtil.getRemainingDayWithString(formatter));
+                        formatter = new PeriodFormatterBuilder()
+                                .printZeroAlways().minimumPrintedDigits(2).appendHours().appendSeparator(":")
+                                .printZeroAlways().minimumPrintedDigits(2).appendMinutes().appendSeparator(":")
+                                .printZeroAlways().minimumPrintedDigits(2).appendSeconds()
+                                .toFormatter();
+                        userBottomTextView.setText(mServiceUtil.getRemainingDayWithString(formatter));
+                        break;
+                }
+            }
 
-				mBreakMonthBlock.setVisibility(View.GONE);
-				mTvUntilLogoutTitle.setText("距離入伍還剩下");
-				mTvStatus.setText("準備好踏入陰間了嗎？");
-			} else {
-				long login_millis = System.currentTimeMillis() - mLoginDateCalendar.getTimeInMillis();
-				Calendar currDay = Calendar.getInstance();
-				currDay.setTimeInMillis(login_millis);
-				loginPassDay = (int) (login_millis / 1000 / 60 / 60 / 24);
+            /*for (UpdateCallbacks callbacks : mDemoViews) {
+                callbacks.onUpdate(mServiceUtil.getPercentage());
+            }*/
 
-				diffInMillis = mLogoutDateCalendar.getTimeInMillis() - System.currentTimeMillis();
-				mTvUntilLogoutTitle.setText("距離退伍還剩下");
-				mTvStatus.setText("你入伍已經"+loginPassDay+"天了嘿~ ");
-			}
+            mTvUntilLogoutDays.setText(mServiceUtil.getRemainingDayWithString());
+            mProgressBarLogin.setProgress((int) mServiceUtil.getPercentage());
 
-			mCalendar.setTimeInMillis(diffInMillis);
+            if (mServiceUtil.isHundredDays()) {
+                mBreakMonthBlock.setVisibility(View.VISIBLE);
+                mBreakMonthTextView.setText(mServiceUtil.getUntilHundredDaysRemainingDaysWithString());
+            } else {
+                mBreakMonthBlock.setVisibility(View.GONE);
+            }
 
-			StringBuffer buffer = new StringBuffer();
+            if (mServiceUtil.getPercentage() >= 100.0f) {
+                mTvStatus.setText("學長(`・ω・́)ゝ 你已經成功返陽了!");
+                mTvUntilLogoutDays.setText("0天 00:00:00");
+            }
 
-			if (mLoginDateCalendar.getTimeInMillis() <= System.currentTimeMillis()
-					&& (mSpinnerServiceDay.getSelectedItemPosition() == 3) || mSpinnerServiceDay.getSelectedItemPosition() == 2) {
-				if((mCalendar.get(Calendar.YEAR) - 1970) != 0){
-					buffer.append((mCalendar.get(Calendar.YEAR) - 1970) + "年");
-					buffer.append((mCalendar.get(Calendar.MONTH)+1) + "個月");
-					buffer.append((mCalendar.get(Calendar.DAY_OF_MONTH) - 1) + "天 ");
-				}else{
-					buffer.append((mCalendar.get(Calendar.DAY_OF_YEAR) - 1) + "天 ");
-				}
-			} else {
-				buffer.append((mCalendar.get(Calendar.DAY_OF_YEAR) - 1) + "天 ");
-			}
+            //END
+            mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
+        }
 
-			mFacebookCountTimeText = buffer.toString();
-
-			buffer.append((pad(mCalendar.get(Calendar.HOUR_OF_DAY)) + ":"));
-			buffer.append((pad(mCalendar.get(Calendar.MINUTE)) + ":"));
-			buffer.append((pad(mCalendar.get(Calendar.SECOND))));
-			mCountTimeText = buffer.toString();
-
-
-//			Log.d(TAG, "Nokori:" + diffInMillis);
-
-
-//			LOGOUT_DAY = String.valueOf((mCalendar.get(Calendar.DAY_OF_YEAR)-1));
-			sLogoutYear = (mCalendar.get(Calendar.YEAR) - 1970);
-			sLogoutDay = (mCalendar.get(Calendar.DAY_OF_YEAR) - 1);
-
-			double doubleLoginPassDay = Calendar.getInstance().getTimeInMillis() - mLoginDateCalendar.getTimeInMillis();
-
-			sLoginPercent = (float) (( doubleLoginPassDay / (mLogoutDateCalendar.getTimeInMillis() - mLoginDateCalendar.getTimeInMillis())) * 100f);
-			String percentText = new DecimalFormat("#.##").format(sLoginPercent);
-			if(sLoginPercent >= 100){
-				mTvLoginPercent.setText("100%");
-			} else if (sLoginPercent <= 0) {
-				mTvLoginPercent.setText("0%");
-			} else {
-				mTvLoginPercent.setText(percentText + "%");
-			}
-
-
-			mTvUntilLogoutDays.setText(mCountTimeText);
-			mProgressBarLogin.setProgress((int) sLoginPercent);
-
-			/**
-			 * 20130407 - 破月BLOCK
-			 **/
-
-//			mBreakMonthBlock.setVisibility(View.GONE);
-
-			if (sLogoutYear <= 0 &&sLogoutDay < 100 && sLogoutDay > 30 && diffInMillis > 0) {
-				mBreakMonthBlock.setVisibility(View.VISIBLE);
-				int break_month_tmp = sLogoutDay - 30;
-				mBreakMonthTextView.setText(break_month_tmp + "天");
-			} else {
-				mBreakMonthBlock.setVisibility(View.GONE);
-			}
-
-			if (diffInMillis < 0){
-				mTvStatus.setText("學長(`・ω・́)ゝ 你已經成功返陽了!");
-				mTvUntilLogoutDays.setText("0天 00:00:00");
-			}
-
-
-			//END
-			mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
-		}
-
-	};
-
-	private static String pad(int c) {
-		if (c >= 10)
-			return String.valueOf(c);
-		else
-			return "0" + String.valueOf(c);
-	}
+    };
+    private CirclePageIndicator mCirclePageIndicator;
+    private ViewPager mViewPager;
 
     @Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		ButterKnife.bind(this);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-		setSupportActionBar(mToolbar);
+        setSupportActionBar(mToolbar);
 
         mBreakMonthBlock.setVisibility(View.GONE);
 
         restorePrefs();
-		loadUserData();
-		setListeners();
+        loadUserData();
+        setListeners();
         initCircleView();
         new LongOperation().execute();
 
-		ChangeLog cl = new ChangeLog(this);
-		if (cl.firstRun())
-			cl.getLogDialog().show();
+        ChangeLog cl = new ChangeLog(this);
+        if (cl.firstRun())
+            cl.getLogDialog().show();
 
-	}
+        mViewPager = mCircularBarPager.getViewPager();
+        mViewPager.setClipToPadding(true);
+        mCirclePageIndicator = mCircularBarPager.getCirclePageIndicator();
+
+        mDemoViews = new DemoView[2];
+        mDemoViews[0] = new DemoView(this);
+        mDemoViews[1] = new DemoView(this);
+
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this, mDemoViews);
+        mViewPager.setAdapter(adapter);
+        mCirclePageIndicator.setViewPager(mViewPager);
+        mCirclePageIndicator.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                if (mCircularBarPager != null && mCircularBarPager.getCircularBar() != null) {
+                    selectItem(position);
+                }
+            }
+        });
+
+        mCirclePageIndicator.setFillColor(0xFF888888);
+//        mCirclePageIndicator.setStrokeColor(0xFF000000);
+//        mCirclePageIndicator.setStrokeWidth();
+//        mCirclePageIndicator.setRadius();
+    }
+
+    private void selectItem(int position) {
+        switch (position) {
+            case 0:
+                mCircularBarPager.getCircularBar().animateProgress(0, (int) mServiceUtil.getPercentage(), BAR_ANIMATION_TIME);
+                break;
+            case 1:
+                mCircularBarPager.getCircularBar().animateProgress(0, (int) mServiceUtil.getPercentage(), BAR_ANIMATION_TIME);
+//                mCircularBarPager.getCircularBar().animateProgress(100, -75, BAR_ANIMATION_TIME);
+//                mDemoViews[1].mValueInfoTextview.setText(mCountTimeText);
+                break;
+            default:
+                mCircularBarPager.getCircularBar().animateProgress(0, (int) mServiceUtil.getPercentage(), BAR_ANIMATION_TIME);
+                break;
+        }
+    }
 
     private void initCircleView() {
         mCircleView.setOnProgressChangedListener(new CircleProgressView.OnProgressChangedListener() {
@@ -387,33 +411,33 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-	private void setListeners() {
+    private void setListeners() {
 
-		mTvUsername.setOnClickListener(new OnClickListener() {
-			public void onClick(View view) {
-				final EditText inputText = new EditText(MainActivity.this);
-				AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-				alertDialog.setTitle("改名");
-				alertDialog.setView(inputText, 10, 15, 10, 0);
-				inputText.setText(USER_FB_NAME);
-				inputText.setLines(1);
-				inputText.setSingleLine(true);
-				alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "確定", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						USER_FB_NAME = inputText.getText().toString();
-						mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
-					}
-				});
-				alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-					}
-				});
-				alertDialog.show();
-			}
-		});
+        mTvUsername.setOnClickListener(new OnClickListener() {
+            public void onClick(View view) {
+                final EditText inputText = new EditText(MainActivity.this);
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                alertDialog.setTitle("改名");
+                alertDialog.setView(inputText, 10, 15, 10, 0);
+                inputText.setText(USER_FB_NAME);
+                inputText.setLines(1);
+                inputText.setSingleLine(true);
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "確定", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        USER_FB_NAME = inputText.getText().toString();
+                        mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
+                    }
+                });
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+                alertDialog.show();
+            }
+        });
 
         final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(MainActivity.this)
-                .minValue(1)
+                .minValue(0)
                 .maxValue(30)
                 .defaultValue(mDeleteDay)
                 .backgroundColor(Color.WHITE)
@@ -428,13 +452,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new MaterialDialog.Builder(MainActivity.this)
-                        .customView(numberPicker,false)
+                        .customView(numberPicker, false)
                         .title("折抵天數")
                         .positiveText(android.R.string.ok)
                         .onPositive(new MaterialDialog.SingleButtonCallback() {
                             @Override
                             public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-								mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
+                                mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
+                                mDeleteDay = numberPicker.getValue();
+                                loadUserData();
+                            }
+                        })
+                        .dismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
                                 mDeleteDay = numberPicker.getValue();
                                 loadUserData();
                             }
@@ -443,173 +475,179 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-		/**
-		 *  自訂役期下拉選單初始化及設定監聽器
-		 *
-		 *  TODO 長按Spinner可以自訂 或 按住自訂的Item可以設定
-		 */
+        /**
+         *  自訂役期下拉選單初始化及設定監聽器
+         *
+         *  TODO 長按Spinner可以自訂 或 按住自訂的Item可以設定
+         */
 
 
-		mServiceRangeArrayList.add("1年");
-		mServiceRangeArrayList.add("4個月");
-		mServiceRangeArrayList.add("1年15天");
+        mServiceRangeArrayList.add("1年");
+        mServiceRangeArrayList.add("4個月");
+        mServiceRangeArrayList.add("1年15天");
 
 //		serviceDayAdapter = ArrayAdapter.createFromResource(this, R.array.service_day, android.R.layout.simple_spinner_item);
-		mServiceDayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, mServiceRangeArrayList);
-		mSpinnerServiceDay.setAdapter(mServiceDayAdapter);
-		mServiceDayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mServiceDayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mServiceRangeArrayList);
+        mSpinnerServiceDay.setAdapter(mServiceDayAdapter);
+        mServiceDayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-		if(mCustomServiceRange){
-			mServiceDayAdapter.add(calCustomServiceRange(sCustomServiceRangeArray));
-			mServiceDayAdapter.notifyDataSetChanged();
-		}
+        if (mCustomServiceRange) {
+            mServiceDayAdapter.add(calCustomServiceRange(sCustomServiceRangeArray));
+            mServiceDayAdapter.notifyDataSetChanged();
+        }
 
-		if (sIntServiceRange != RANGE_DEFAULT_ONE_YEAR) {
-			mSpinnerServiceDay.setSelection(sIntServiceRange);
-		}
+        if (sIntServiceRange != RANGE_DEFAULT_ONE_YEAR) {
+            mSpinnerServiceDay.setSelection(sIntServiceRange);
+        }
 
-		mSpinnerServiceDay.setOnItemSelectedListener(new OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				sIntServiceRange = position;
-				loadUserData();
-			}
+        mSpinnerServiceDay.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                sIntServiceRange = position;
+                loadUserData();
+            }
 
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-			}
-		});
-	}
-	
-	private boolean checkNetwork() {
-		try {
-			ConnectivityManager cm = (ConnectivityManager) getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
-			NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-			boolean isConnected = activeNetwork.isConnectedOrConnecting();
-			// LoginFacebook();
-			mProgressBarFbConnect.setVisibility(View.GONE);
-			return isConnected;
-		} catch (NullPointerException e) {
-			mProgressBarFbConnect.setVisibility(View.VISIBLE);
-			mTvUsername.setText("請確認網路狀況是否正常");
-			return false;
-		} finally {
-			mCheckNetWorkStatusHandler.postDelayed(mCheckNetWorkStatusRunnable, 1000);
-		}
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
 
-	}
-	
-	private void LoginFacebook() {
+    private boolean checkNetwork() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            boolean isConnected = activeNetwork.isConnectedOrConnecting();
+            // LoginFacebook();
+            mProgressBarFbConnect.setVisibility(View.GONE);
+            return isConnected;
+        } catch (NullPointerException e) {
+            mProgressBarFbConnect.setVisibility(View.VISIBLE);
+            mTvUsername.setText("請確認網路狀況是否正常");
+            return false;
+        } finally {
+            mCheckNetWorkStatusHandler.postDelayed(mCheckNetWorkStatusRunnable, 1000);
+        }
 
-		Session.openActiveSession(this, true, new Session.StatusCallback() {
-			@Override
-			public void call(final Session session, SessionState state, Exception exception) {
-				if (session.isOpened()) {
+    }
 
-				    if (session != null){
-				        // Check for publish permissions
-				        List<String> permissions = session.getPermissions();
-				        if (!isSubsetOf(PERMISSIONS, permissions)) {
-				            pendingPublishReauthorization = true;
-				            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(MainActivity.this, PERMISSIONS);
-				            session.requestNewPublishPermissions(newPermissionsRequest);
-				        }
+    private void LoginFacebook() {
 
-			            // Make an API call to get user data and define a
-			            // new callback to handle the response.
-			            Request request = Request.newMeRequest(session, new Request.GraphUserCallback() {
-			                @Override
-			                public void onCompleted(GraphUser user, Response response) {
-			                    // If the response is successful
-			                    if (session == Session.getActiveSession()) {
-			                        if (user != null) {
-			                            // Set the id for the ProfilePictureView
-			                            // view that in turn displays the profile picture.
-			                            // Set the Textview's text to the user's name.
-			                        	mTvUsername.setText("Hi~ " + user.getName() + "!");
-			            	            mProgressBarFbConnect.setVisibility(View.GONE);
-			            	            USER_FB_NAME = user.getName();
-			                        }
-			                    }
-			                    if (response.getError() != null) {
-			                        // Handle errors, will do so later.
-			                    }
-			                }
-			            });
-			            request.executeAsync();
-			            return;
-				    }
-				}
-			}
-		});
+        Session.openActiveSession(this, true, new Session.StatusCallback() {
+            @Override
+            public void call(final Session session, SessionState state, Exception exception) {
+                if (session.isOpened()) {
+
+                    if (session != null) {
+                        // Check for publish permissions
+                        List<String> permissions = session.getPermissions();
+                        if (!isSubsetOf(PERMISSIONS, permissions)) {
+                            pendingPublishReauthorization = true;
+                            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(MainActivity.this, PERMISSIONS);
+                            session.requestNewPublishPermissions(newPermissionsRequest);
+                        }
+
+                        // Make an API call to get user data and define a
+                        // new callback to handle the response.
+                        Request request = Request.newMeRequest(session, new Request.GraphUserCallback() {
+                            @Override
+                            public void onCompleted(GraphUser user, Response response) {
+                                // If the response is successful
+                                if (session == Session.getActiveSession()) {
+                                    if (user != null) {
+                                        // Set the id for the ProfilePictureView
+                                        // view that in turn displays the profile picture.
+                                        // Set the Textview's text to the user's name.
+                                        mTvUsername.setText("Hi~ " + user.getName() + "!");
+                                        mProgressBarFbConnect.setVisibility(View.GONE);
+                                        USER_FB_NAME = user.getName();
+                                    }
+                                }
+                                if (response.getError() != null) {
+                                    // Handle errors, will do so later.
+                                }
+                            }
+                        });
+                        request.executeAsync();
+                        return;
+                    }
+                }
+            }
+        });
 
 //	    final Session session = Session.getActiveSession();
 
-	}
+    }
 
-	private boolean checkPostPermissions(){
-		Session session = Session.getActiveSession();
-		try {
-			if (session != null) {
+    private boolean checkPostPermissions() {
+        Session session = Session.getActiveSession();
+        try {
+            if (session != null) {
 
-				// Check for publish permissions
-				List<String> permissions = session.getPermissions();
-				if (!isSubsetOf(PERMISSIONS, permissions)) {
-					pendingPublishReauthorization = true;
-					Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-					session.requestNewPublishPermissions(newPermissionsRequest);
-					Log.d(TAG, "跑了");
-					return false;
-				}
-				return true;
-			}
-		} catch (UnsupportedOperationException e) {
-			Toast.makeText(MainActivity.this. getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
-		}
-		return false;
-	}
+                // Check for publish permissions
+                List<String> permissions = session.getPermissions();
+                if (!isSubsetOf(PERMISSIONS, permissions)) {
+                    pendingPublishReauthorization = true;
+                    Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
+                    session.requestNewPublishPermissions(newPermissionsRequest);
+                    Log.d(TAG, "跑了");
+                    return false;
+                }
+                return true;
+            }
+        } catch (UnsupportedOperationException e) {
+            Toast.makeText(MainActivity.this.getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
+        }
+        return false;
+    }
 
-	protected void saveImage(Bitmap bmScreen2) {
+    protected void saveImage(Bitmap bmScreen2) {
 
-		// String fname = "Upload.png";
-		File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-		File saved_image_file = new File(path + "/captured_screen.png");
-		if (saved_image_file.exists())
-			saved_image_file.delete();
-		try {
-			//resize
+        // String fname = "Upload.png";
+        File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File saved_image_file = new File(path + "/captured_screen.png");
+        if (saved_image_file.exists())
+            saved_image_file.delete();
+        try {
+            //resize
 
-			FileOutputStream out = new FileOutputStream(saved_image_file);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, out);
-			bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, baos);
-			photo_data = baos.toByteArray();
-			out.flush();
-			out.close();
+            FileOutputStream out = new FileOutputStream(saved_image_file);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, out);
+            bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            photo_data = baos.toByteArray();
+            out.flush();
+            out.close();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 //		setCountDownTimer(LOGOUT_TIME);
-		mRefreshInformationHandler.post(mRefreshInformationRunnable);
-		mCheckNetWorkStatusHandler.post(mCheckNetWorkStatusRunnable);
-	}
+        mRefreshInformationHandler.post(mRefreshInformationRunnable);
+        mCheckNetWorkStatusHandler.post(mCheckNetWorkStatusRunnable);
+        mCircularBarPager.getCircularBar().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                selectItem(0);
+            }
+        }, 550);
+    }
 
-	@Override
-	protected void onPause() {
-		super.onPause();
+    @Override
+    protected void onPause() {
+        super.onPause();
 //		mCountDownTimer.cancel();
-		mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
-		mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
+        mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
+        mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
 
         savePrefs();
-	}
+    }
 
     private void savePrefs() {
         SharedPreferences settings = getSharedPreferences(PREF, 0);
@@ -627,178 +665,182 @@ public class MainActivity extends AppCompatActivity {
                 .putString(PREF_CUSTOM_SERVICERANGE_DAY, sCustomServiceRangeArray[2])
                 .apply();
     }
-	
+
     // Restore preferences
-    private void restorePrefs()
-    {
+    private void restorePrefs() {
         SharedPreferences settings = getSharedPreferences(PREF, 0);
         String prefLoginDate = settings.getString(PREF_LOGINDATE, "");
         String prefDeleteDays = settings.getString(PREF_DELETEDAY, "");
 
         sLoginDate = prefLoginDate.equals("") ? mFormat.format(System.currentTimeMillis()) : prefLoginDate;
 
-		if (!"".equals(prefDeleteDays)) {
-			sDeleteDays = prefDeleteDays;
+        if (!"".equals(prefDeleteDays)) {
+            sDeleteDays = prefDeleteDays;
             mDeleteDay = Integer.valueOf(sDeleteDays);
             mDeleteDayButton.setText(sDeleteDays);
-		} else {
-			sDeleteDays = "0";
-		}
+        } else {
+            sDeleteDays = "0";
+        }
 
         sIntServiceRange = settings.getInt(PREF_SERVICERANGE, 0);
         USER_FB_NAME = settings.getString(PREF_USERNAME, "弟兄");
 //        sWidgetColors = settings.getInt(PREF_WIDGETBGCOLOR, -1);
 
-		sCustomServiceRangeArray[0] = settings.getString(PREF_CUSTOM_SERVICERANGE_YEAR, "4");
-		sCustomServiceRangeArray[1] = settings.getString(PREF_CUSTOM_SERVICERANGE_MONTH, "0");
-		sCustomServiceRangeArray[2] = settings.getString(PREF_CUSTOM_SERVICERANGE_DAY, "0");
+        sCustomServiceRangeArray[0] = settings.getString(PREF_CUSTOM_SERVICERANGE_YEAR, "4");
+        sCustomServiceRangeArray[1] = settings.getString(PREF_CUSTOM_SERVICERANGE_MONTH, "0");
+        sCustomServiceRangeArray[2] = settings.getString(PREF_CUSTOM_SERVICERANGE_DAY, "0");
 
-		calCustomServiceRange(sCustomServiceRangeArray);
+        calCustomServiceRange(sCustomServiceRangeArray);
 
         mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
     }
-	
-    private void loadUserData(){
-		try {
-			mLoginDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd" ,new Locale("TAIWAN")).parse(sLoginDate));
-			int minusDay = mDeleteDay;
-			mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd" ,new Locale("TAIWAN")).parse(sLoginDate));
 
-			switch(sIntServiceRange){
-			case RANGE_DEFAULT_ONE_YEAR:
-				mLogoutDateCalendar.add(Calendar.YEAR, 1);
-				break;
-			case RANGE_FOUR_MONTH:
-				mLogoutDateCalendar.add(Calendar.MONTH, 4);
-				break;
-			case RANGE_ONE_YEAR_FIFTEEN:
-		        mLogoutDateCalendar.add(Calendar.YEAR, 1);
-		        mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, 15);
-				break;
-			case RANGE_CUSTOM: //自訂役期
-				mLogoutDateCalendar.add(Calendar.YEAR, Integer.valueOf(sCustomServiceRangeArray[0]));
-				mLogoutDateCalendar.add(Calendar.MONTH, Integer.valueOf(sCustomServiceRangeArray[1]));
-				mLogoutDateCalendar.add(Calendar.DAY_OF_MONTH, Integer.valueOf(sCustomServiceRangeArray[2]));
-				break;
-			default:
-				break;
-			}
+    private void loadUserData() {
+        try {
+//            if(sLoginDate)
+            mLoginDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd", new Locale("TAIWAN")).parse(sLoginDate));
+//            mLoginDateCalendar.setTimeInMillis(DateTime.parse(sLoginDate).getMillis());
+            int minusDay = mDeleteDay;
+            mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd", new Locale("TAIWAN")).parse(sLoginDate));
 
-			mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, -minusDay);
+            switch (sIntServiceRange) {
+                case RANGE_DEFAULT_ONE_YEAR:
+                    mServiceTime = ServiceTime.ONE_YEAR;
+                    mLogoutDateCalendar.add(Calendar.YEAR, 1);
+                    break;
+                case RANGE_FOUR_MONTH:
+                    mServiceTime = ServiceTime.FOUR_MONTHS;
+                    mLogoutDateCalendar.add(Calendar.MONTH, 4);
+                    break;
+                case RANGE_ONE_YEAR_FIFTEEN:
+                    mServiceTime = ServiceTime.ONE_YEAR_FIFTH_DAYS;
+                    mLogoutDateCalendar.add(Calendar.YEAR, 1);
+                    mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, 15);
+                    break;
+                case RANGE_CUSTOM: //自訂役期
+                    mLogoutDateCalendar.add(Calendar.YEAR, Integer.valueOf(sCustomServiceRangeArray[0]));
+                    mLogoutDateCalendar.add(Calendar.MONTH, Integer.valueOf(sCustomServiceRangeArray[1]));
+                    mLogoutDateCalendar.add(Calendar.DAY_OF_MONTH, Integer.valueOf(sCustomServiceRangeArray[2]));
+                    break;
+                default:
+                    break;
+            }
 
-			if(mLoginDateCalendar.getTimeInMillis() < System.currentTimeMillis()){
-				login_yet = true;
-			} else {
-				login_yet = false;
-			}
+            mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, -minusDay);
+
+            if (mLoginDateCalendar.getTimeInMillis() < System.currentTimeMillis()) {
+                login_yet = true;
+            } else {
+                login_yet = false;
+            }
 
 //			mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd").parse(LOGOUT_TIME));
 
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		int year = mLoginDateCalendar.get(Calendar.YEAR);
-		int month = mLoginDateCalendar.get(Calendar.MONTH)+1;
-		int day = mLoginDateCalendar.get(Calendar.DAY_OF_MONTH);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        int year = mLoginDateCalendar.get(Calendar.YEAR);
+        int month = mLoginDateCalendar.get(Calendar.MONTH) + 1;
+        int day = mLoginDateCalendar.get(Calendar.DAY_OF_MONTH);
 
-		mBtnLoginDate.setText(year + "年" + month + "月" + day + "日");
+        mBtnLoginDate.setText(year + "年" + month + "月" + day + "日");
 
-		year = mLogoutDateCalendar.get(Calendar.YEAR);
-		month = mLogoutDateCalendar.get(Calendar.MONTH)+1;
-		day = mLogoutDateCalendar.get(Calendar.DAY_OF_MONTH);
+        year = mLogoutDateCalendar.get(Calendar.YEAR);
+        month = mLogoutDateCalendar.get(Calendar.MONTH) + 1;
+        day = mLogoutDateCalendar.get(Calendar.DAY_OF_MONTH);
 
-		mTvLogoutDate.setText(year + "年" + month + "月" + day + "日");
+        mTvLogoutDate.setText(year + "年" + month + "月" + day + "日");
 //		String logout_date = year+"-"+(month)+"-"+day;
 //		LOGOUT_TIME = logout_date;
     }
-    
-	private void publishStory(String post_message ,boolean takepic) throws Exception{
-		String graphPath = "me/feed";
-	    Session session = Session.getActiveSession();
 
-	    if (session != null){
+    private void publishStory(String post_message, boolean takepic) throws Exception {
+        String graphPath = "me/feed";
+        Session session = Session.getActiveSession();
 
-	        // Check for publish permissions
-			List<String> permissions = session.getPermissions();
-			if (!isSubsetOf(PERMISSIONS, permissions)) {
-				pendingPublishReauthorization = true;
-				Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-				session.requestNewPublishPermissions(newPermissionsRequest);
-				Log.d(TAG, "跑了");
-				return;
-			}
+        if (session != null) {
 
-	        Bundle postParams = new Bundle();
-	        postParams.putString("message", post_message);
+            // Check for publish permissions
+            List<String> permissions = session.getPermissions();
+            if (!isSubsetOf(PERMISSIONS, permissions)) {
+                pendingPublishReauthorization = true;
+                Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
+                session.requestNewPublishPermissions(newPermissionsRequest);
+                Log.d(TAG, "跑了");
+                return;
+            }
 
-	        /**
-	         * photo cap.
-	         */
+            Bundle postParams = new Bundle();
+            postParams.putString("message", post_message);
 
-	        if(takepic){
-		        screen = (View) findViewById(R.id.logout_information);
-				screen.setDrawingCacheEnabled(true);
-				bmScreen = screen.getDrawingCache();
-				saveImage(bmScreen);
-				screen.setDrawingCacheEnabled(false);
-				postParams.putByteArray("picture", photo_data);
-				graphPath = "me/photos";
-	        } else {
-		        postParams.putString("name", "放假時間是很珍貴的!");
-		        postParams.putString("caption", "請愛護服役人員");
-				postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
-		        postParams.putString("link", "https://play.google.com/store/apps/details?id=com.kihon.android.apps.army_logout");
-		        postParams.putString("picture", "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc1/s160x160/481191_436050169810593_1810179700_a.png");
-	        }
+            /**
+             * photo cap.
+             */
 
-	        Log.d(TAG, post_message);
+            if (takepic) {
+                screen = (View) findViewById(R.id.logout_information);
+                screen.setDrawingCacheEnabled(true);
+                bmScreen = screen.getDrawingCache();
+                saveImage(bmScreen);
+                screen.setDrawingCacheEnabled(false);
+                postParams.putByteArray("picture", photo_data);
+                graphPath = "me/photos";
+            } else {
+                postParams.putString("name", "放假時間是很珍貴的!");
+                postParams.putString("caption", "請愛護服役人員");
+                postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
+                postParams.putString("link", "https://play.google.com/store/apps/details?id=com.kihon.android.apps.army_logout");
+                postParams.putString("picture", "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc1/s160x160/481191_436050169810593_1810179700_a.png");
+            }
 
-			Request.Callback callback = new Request.Callback() {
-				public void onCompleted(Response response) {
-					JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-					String postId = null;
-					try {
-						postId = graphResponse.getString("id");
-					} catch (JSONException e) {
-						Log.i(TAG, "JSON error " + e.getMessage());
-					}
-					FacebookRequestError error = response.getError();
-					if (error != null) {
-						Toast.makeText(MainActivity.this.getApplicationContext(), error.getErrorMessage(), Toast.LENGTH_SHORT).show();
-					} else {
+            Log.d(TAG, post_message);
+
+            Request.Callback callback = new Request.Callback() {
+                public void onCompleted(Response response) {
+                    JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
+                    String postId = null;
+                    try {
+                        postId = graphResponse.getString("id");
+                    } catch (JSONException e) {
+                        Log.i(TAG, "JSON error " + e.getMessage());
+                    }
+                    FacebookRequestError error = response.getError();
+                    if (error != null) {
+                        Toast.makeText(MainActivity.this.getApplicationContext(), error.getErrorMessage(), Toast.LENGTH_SHORT).show();
+                    } else {
 //	                        Toast.makeText(MainActivity.this.getApplicationContext(), postId, Toast.LENGTH_LONG).show();
-						Toast.makeText(MainActivity.this.getApplicationContext(), "張貼成功!", Toast.LENGTH_LONG).show();
-						Log.d(TAG, postId);
-					}
-					mProgressDialog.dismiss();
-				}
-			};
+                        Toast.makeText(MainActivity.this.getApplicationContext(), "張貼成功!", Toast.LENGTH_LONG).show();
+                        Log.d(TAG, postId);
+                    }
+                    mProgressDialog.dismiss();
+                }
+            };
 
-			Request request = new Request(session, graphPath, postParams, HttpMethod.POST, callback);
+            Request request = new Request(session, graphPath, postParams, HttpMethod.POST, callback);
 
-			RequestAsyncTask task = new RequestAsyncTask(request);
-			task.execute();
-		}
+            RequestAsyncTask task = new RequestAsyncTask(request);
+            task.execute();
+        }
 
-	}
+    }
 
-	private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
-	    for (String string : subset) {
-	        if (!superset.contains(string)) {
-	            return false;
-	        }
-	    }
-	    return true;
-	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main, menu);
+    private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
+        for (String string : subset) {
+            if (!superset.contains(string)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
 
 		/*
-		final SharedPreferences settings = getSharedPreferences(PREF, 0);
+        final SharedPreferences settings = getSharedPreferences(PREF, 0);
 		menu.findItem(R.id.action_connect_fb).setChecked(settings.getBoolean(PREF_CONNECT_FB, false));
 
 		menu.findItem(R.id.action_connect_fb).setOnMenuItemClickListener(new OnMenuItemClickListener() {
@@ -817,75 +859,76 @@ public class MainActivity extends AppCompatActivity {
 		});
 		*/
 
-		return super.onCreateOptionsMenu(menu);
-	}
+        return super.onCreateOptionsMenu(menu);
+    }
 
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
-	}
-	
-	private void onSessionStateChange(Session session, SessionState state, Exception exception) {
-	    if (state.isOpened()) {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
+
+    private void onSessionStateChange(Session session, SessionState state, Exception exception) {
+        if (state.isOpened()) {
 //	        shareButton.setVisibility(View.VISIBLE);
-	    } else if (state.isClosed()) {
+        } else if (state.isClosed()) {
 //	        shareButton.setVisibility(View.INVISIBLE);
-	    }
-	}
-	
-	public void showDatePickerDialog(View v) {
+        }
+    }
+
+    public void showDatePickerDialog(View v) {
 //		DialogFragment newFragment = new DatePickerFragment();
 //		newFragment.show(getFragmentManager(), "datePicker");
-		Calendar calendar = mLoginDateCalendar;
+        Calendar calendar = mLoginDateCalendar;
 
-		int year = calendar.get(Calendar.YEAR);
-		int monthOfYear = calendar.get(Calendar.MONTH);
-		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+        int year = calendar.get(Calendar.YEAR);
+        int monthOfYear = calendar.get(Calendar.MONTH);
+        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 
-		DatePickerDialog.OnDateSetListener callBack = new DatePickerDialog.OnDateSetListener() {
-			@Override
-			public void onDateSet(DatePicker view, int year, int monthOfYear,
-					int dayOfMonth) {
-				Log.d(TAG, year+"年"+monthOfYear+"月"+dayOfMonth+"日");
+        DatePickerDialog.OnDateSetListener callBack = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                  int dayOfMonth) {
+                Log.d(TAG, year + "年" + monthOfYear + "月" + dayOfMonth + "日");
 
-				String login_date = year+"-"+(monthOfYear+1)+"-"+dayOfMonth;
-				sLoginDate = login_date;
-				loadUserData();
+                String login_date = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
+//                sLoginDate = new DateTime(year, monthOfYear, dayOfMonth, 0, 0, 0, DateTimeZone.getDefault()).getMillis();
+                sLoginDate = login_date;
+                loadUserData();
 
-			}
-		};
-		DatePickerDialog pickerDialog = new DatePickerDialog(this, callBack, year, monthOfYear, dayOfMonth);
-		pickerDialog.show();
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.action_share:
-			return true;
-		case R.id.share_photo:
-			CharSequence[] items = {"拍攝相片","選擇相片"};
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setItems(items , new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int item) {
-					switch(item){
-					case 0:
-						startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", true));
-						break;
-					case 1:
-						startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", false));
-						break;
-					}
-				}
-			});
-			builder.create();
-			builder.show();
-			return true;
-		case R.id.share_board:
+            }
+        };
+        DatePickerDialog pickerDialog = new DatePickerDialog(this, callBack, year, monthOfYear, dayOfMonth);
+        pickerDialog.show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_share:
+                return true;
+            case R.id.share_photo:
+                CharSequence[] items = {"拍攝相片", "選擇相片"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        switch (item) {
+                            case 0:
+                                startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", true));
+                                break;
+                            case 1:
+                                startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", false));
+                                break;
+                        }
+                    }
+                });
+                builder.create();
+                builder.show();
+                return true;
+            case R.id.share_board:
 
 			/*
-	        	AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
 	        	alert.setTitle("分享至Facebook");
 	        	alert.setMessage("計時看板截圖+你想說的話，一併發布至你的動態時報!");
@@ -922,95 +965,117 @@ public class MainActivity extends AppCompatActivity {
 	        	alert.show();
 			 */
 
-			screen = findViewById(R.id.logout_information);
-            assert screen != null;
-            screen.setDrawingCacheEnabled(true);
-			bmScreen = screen.getDrawingCache();
-			saveImage(bmScreen);
-			screen.setDrawingCacheEnabled(false);
+                screen = findViewById(R.id.logout_information);
+                assert screen != null;
+                screen.setDrawingCacheEnabled(true);
+                bmScreen = screen.getDrawingCache();
+                saveImage(bmScreen);
+                screen.setDrawingCacheEnabled(false);
 
-			File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-			File image_file = new File(path + "/captured_screen.png");
-			Uri outputFileUri = Uri.fromFile(image_file);
+                File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                File image_file = new File(path + "/captured_screen.png");
+                Uri outputFileUri = Uri.fromFile(image_file);
 
-			Intent shareIntent = new Intent();
-			shareIntent.setAction(Intent.ACTION_SEND);
-			shareIntent.putExtra(Intent.EXTRA_STREAM, outputFileUri);
-			shareIntent.setType("image/jpeg");
-			startActivity(Intent.createChooser(shareIntent, "將截圖分享至..."));
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, outputFileUri);
+                shareIntent.setType("image/jpeg");
+                startActivity(Intent.createChooser(shareIntent, "將截圖分享至..."));
 
-			return true;
-		case R.id.share_facebook:
-			LoginFacebook();
-			AlertDialog.Builder alert_non_pic = new AlertDialog.Builder(MainActivity.this);
+                return true;
+            case R.id.share_facebook:
+                LoginFacebook();
+                AlertDialog.Builder alert_non_pic = new AlertDialog.Builder(MainActivity.this);
 
-			alert_non_pic.setTitle("分享至Facebook");
-			alert_non_pic.setMessage("完全不PO圖，將計時看板的資訊轉為文字發布至動態時報");
+                alert_non_pic.setTitle("分享至Facebook");
+                alert_non_pic.setMessage("完全不PO圖，將計時看板的資訊轉為文字發布至動態時報");
 
-			// Set an EditText view to get user input
-			final EditText input_non_pic = new EditText(MainActivity.this);
-			alert_non_pic.setView(input_non_pic);
-			input_non_pic.setHint(USER_FB_NAME+"，快退了嗎？");
+                // Set an EditText view to get user input
+                final EditText input_non_pic = new EditText(MainActivity.this);
+                alert_non_pic.setView(input_non_pic);
+                input_non_pic.setHint(USER_FB_NAME + "，快退了嗎？");
 
-			alert_non_pic.setPositiveButton("送出", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					if(NETWORK_CONNECTED){
-						if(checkPostPermissions()){
-							closeSoftKeyboard(input_non_pic.getWindowToken());
-							String value = input_non_pic.getText().toString();
-							// Do something with value!
-							mProgressDialog = new ProgressDialog(MainActivity.this);
-							mProgressDialog.setMessage("張貼中");
-							mProgressDialog.setIndeterminate(true);
-							mProgressDialog.setCancelable(false);// 無法利用back鍵退出
-							mProgressDialog.show();
-							try {
-								publishStory(value ,false);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}else{
-							Toast.makeText(MainActivity.this. getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
-						}
-					} else {
-						Toast.makeText(MainActivity.this. getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
-					}
+                alert_non_pic.setPositiveButton("送出", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        if (NETWORK_CONNECTED) {
+                            if (checkPostPermissions()) {
+                                closeSoftKeyboard(input_non_pic.getWindowToken());
+                                String value = input_non_pic.getText().toString();
+                                // Do something with value!
+                                mProgressDialog = new ProgressDialog(MainActivity.this);
+                                mProgressDialog.setMessage("張貼中");
+                                mProgressDialog.setIndeterminate(true);
+                                mProgressDialog.setCancelable(false);// 無法利用back鍵退出
+                                mProgressDialog.show();
+                                try {
+                                    publishStory(value, false);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                Toast.makeText(MainActivity.this.getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this.getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
+                        }
 
-				}
-			});
+                    }
+                });
 
-			alert_non_pic.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					// Canceled.
-				}
-			});
+                alert_non_pic.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Canceled.
+                    }
+                });
 
-			alert_non_pic.show();
-			return true;
-			//	        case R.id.share_facebook_request:
-			//	        	if(NETWORK_CONNECTED){
-			//	        		sendRequestDialog();
-			//	        	} else {
-			//	        		Toast.makeText(MainActivity.this. getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
-			//	        	}
-			//
-			//	        	return true;
-		case R.id.action_about:
-			DialogFragment dialogFragment = new AboutDialogFragment();
-			dialogFragment.show(getSupportFragmentManager(), "aboutDialog");
-			return true;
-		case R.id.action_changelog:
-			ChangeLog cl = new ChangeLog(this);
-			cl.getFullLogDialog().show();
-			return true;
-		case R.id.action_change_widger_bgcolor:
-			startActivity(new Intent(this, WidgetColorPickerActivity.class));
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-	
+                alert_non_pic.show();
+                return true;
+            //	        case R.id.share_facebook_request:
+            //	        	if(NETWORK_CONNECTED){
+            //	        		sendRequestDialog();
+            //	        	} else {
+            //	        		Toast.makeText(MainActivity.this. getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
+            //	        	}
+            //
+            //	        	return true;
+            case R.id.action_about:
+                DialogFragment dialogFragment = new AboutDialogFragment();
+                dialogFragment.show(getSupportFragmentManager(), "aboutDialog");
+                return true;
+            case R.id.action_changelog:
+                ChangeLog cl = new ChangeLog(this);
+                cl.getFullLogDialog().show();
+                return true;
+            case R.id.action_change_widger_bgcolor:
+                startActivity(new Intent(this, WidgetColorPickerActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void closeSoftKeyboard(IBinder iBinder) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(iBinder, 0);
+    }
+
+    private String calCustomServiceRange(String[] rangeArr) {
+        StringBuilder spinnerText = new StringBuilder();
+        spinnerText.append(!rangeArr[0].equals("0") ? rangeArr[0] + "年" : "");
+        spinnerText.append(!rangeArr[1].equals("0") ? rangeArr[1] + "個月" : "");
+        spinnerText.append(!rangeArr[2].equals("0") ? rangeArr[2] + "天" : "");
+        mCustomServiceRange = !spinnerText.toString().equals("");
+        return spinnerText.toString();
+    }
+
+    public enum ServiceTime {
+        ONE_YEAR, FOUR_YEARS, ONE_YEAR_FIFTH_DAYS, FOUR_MONTHS
+    }
+
+    interface UpdateCallbacks {
+        void onUpdate(float percent);
+    }
+
 	/*public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
 		@Override
@@ -1028,64 +1093,130 @@ public class MainActivity extends AppCompatActivity {
 		public void onDateSet(DatePicker view, int year, int month, int day) {
 			// Do something with the date chosen by the user
 			Log.d(TAG, year+"年"+month+"月"+day+"日");
-			
+
 			String login_date = year+"-"+(month+1)+"-"+day;
 			sLoginDate = login_date;
 			loadUserData();
 		}
 	}*/
 
-	private void closeSoftKeyboard(IBinder iBinder){
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(iBinder, 0);
-	}
+    private static class ViewPagerAdapter extends PagerAdapter {
 
-	private String calCustomServiceRange(String[] rangeArr) {
-		StringBuffer spinnerText = new StringBuffer();
-		spinnerText.append(!rangeArr[0].equals("0") ? rangeArr[0] + "年" : "");
-		spinnerText.append(!rangeArr[1].equals("0") ? rangeArr[1] + "個月" : "");
-		spinnerText.append(!rangeArr[2].equals("0") ? rangeArr[2] + "天" : "");
-		mCustomServiceRange = !spinnerText.toString().equals("");
-		return spinnerText.toString();
-	}
-	
-	public static class AboutDialogFragment extends DialogFragment {
+        private final Context mContext;
+        private final DemoView[] mViews;
 
-		PackageInfo pinfo = null;
+        public ViewPagerAdapter(Context context, DemoView... views) {
+            mContext = context;
+            mViews = views;
+        }
 
-	    @Override
-	    public Dialog onCreateDialog(Bundle savedInstanceState) {
-	        // Use the Builder class for convenient dialog construction
-	    	final TextView message = new TextView(getActivity());
-	    	StringBuffer buffer = new StringBuffer();
+        @Override
+        public int getCount() {
+            return mViews.length;
+        }
 
-			try {
-				pinfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
-			} catch (NameNotFoundException e) {
-				e.printStackTrace();
-			}
-	    	buffer.append("版本:"+pinfo.versionName);
-	    	buffer.append(getActivity().getText(R.string.about_text));
+        @Override
+        public Object instantiateItem(ViewGroup collection, int position) {
+            DemoView currentView = mViews[position];
+            switch (position) {
+                case 0:
+                    currentView.mUserTopTextview.setText("退伍令下載進度");
+                    break;
+                case 1:
+                    currentView.mUserTopTextview.setText("距離退伍還剩下");
+                    break;
+            }
+            collection.addView(currentView);
+            return currentView;
+        }
 
-	    	final SpannableString s = new SpannableString(buffer.toString());
-	    	Linkify.addLinks(s, Linkify.WEB_URLS);
-	    	message.setText(s);
-	    	message.setTextSize(16);
-	    	message.setPadding(10, 10, 10, 10);
-	    	message.setMovementMethod(LinkMovementMethod.getInstance());
+        @Override
+        public void destroyItem(ViewGroup collection, int position, Object view) {
+            collection.removeView((View) view);
+        }
 
-	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-	        builder.setTitle(R.string.about_app_name)
-	        		.setView(message)
-	        		.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-	                   public void onClick(DialogInterface dialog, int id) {
-	                       // FIRE ZE MISSILES!
-	                   }
-	               });
-	        // Create the AlertDialog object and return it
-	        return builder.create();
-	    }
-	}
+        @Override
+        public boolean isViewFromObject(View view, Object object) {
+            return view == object;
+        }
+    }
+
+    public static class AboutDialogFragment extends DialogFragment {
+
+        PackageInfo pinfo = null;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the Builder class for convenient dialog construction
+            final TextView message = new TextView(getActivity());
+            StringBuffer buffer = new StringBuffer();
+
+            try {
+                pinfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+            } catch (NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            buffer.append("版本:" + pinfo.versionName);
+            buffer.append(getActivity().getText(R.string.about_text));
+
+            final SpannableString s = new SpannableString(buffer.toString());
+            Linkify.addLinks(s, Linkify.WEB_URLS);
+            message.setText(s);
+            message.setTextSize(16);
+            message.setPadding(10, 10, 10, 10);
+            message.setMovementMethod(LinkMovementMethod.getInstance());
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(R.string.about_app_name)
+                    .setView(message)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // FIRE ZE MISSILES!
+                        }
+                    });
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+    }
+
+    public class DemoView extends LinearLayout implements UpdateCallbacks {
+        /**
+         * TAG for logging
+         */
+        private static final String TAG = "HomeUserView";
+
+        @BindView(R.id.user_top_textview)
+        TextView mUserTopTextview;
+        @BindView(R.id.value_info_textview)
+        TextView mValueInfoTextview;
+        @BindView(R.id.user_bottom_textview)
+        TextView mUserBottomTextview;
+        @BindView(R.id.home_info_main_layout)
+        LinearLayout mHomeInfoMainLayout;
+
+        public DemoView(Context context) {
+            super(context);
+            initView();
+        }
+
+        private void initView() {
+            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final LinearLayout view = (LinearLayout) inflater.inflate(R.layout.view_user_info, this);
+            ButterKnife.bind(this, view);
+        }
+
+        @Override
+        public void onUpdate(float percent) {
+            String percentText = new DecimalFormat("#.##").format(percent);
+            if (percent >= 100.0f) {
+                mValueInfoTextview.setText("100%");
+            } else if (percent <= 0.0f) {
+                mValueInfoTextview.setText("0%");
+            } else {
+                mValueInfoTextview.setText(String.format("%s%%", percentText));
+            }
+        }
+    }
 
 	/*private void sendRequestDialog() {
 		Bundle params = new Bundle();
@@ -1138,143 +1269,143 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            mCircleView.setValueAnimated(sLoginPercent);
+            mCircleView.setValueAnimated(mServiceUtil.getPercentage());
 //            mCircleView.stopSpinning();
         }
     }
-	
-	@SuppressLint("ValidFragment")
-	public class CustomRangeDialogFragment extends DialogFragment {
 
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-		    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		    // Get the layout inflater
-		    LayoutInflater inflater = getActivity().getLayoutInflater();
-			builder.setTitle("請輸入役期");
-		    // Inflate and set the layout for the dialog
-		    // Pass null as the parent view because its going in the dialog layout
-		    builder.setView(inflater.inflate(R.layout.dialog_custom_service_range, null))
-		    // Add action buttons
-		           .setPositiveButton("確定", new DialogInterface.OnClickListener() {
-		               @Override
-						public void onClick(DialogInterface dialog, int id) {
-							sCustomServiceRangeArray[0] = ((EditText) getDialog().findViewById(R.id.inputText_year)).getText().toString();
-							sCustomServiceRangeArray[1] = ((EditText) getDialog().findViewById(R.id.inputText_month)).getText().toString();
-							sCustomServiceRangeArray[2] = ((EditText) getDialog().findViewById(R.id.inputText_day)).getText().toString();
-						}
-					})
-		           .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-		               public void onClick(DialogInterface dialog, int id) {
-		                   CustomRangeDialogFragment.this.getDialog().cancel();
-		               }
-		           });
-		    return builder.create();
-		}
+    @SuppressLint("ValidFragment")
+    public class CustomRangeDialogFragment extends DialogFragment {
 
-		@Override
-		public void onResume() {
-			super.onResume();
-			final EditText etYear = (EditText) getDialog().findViewById(R.id.inputText_year);
-			final EditText etMonth = (EditText) getDialog().findViewById(R.id.inputText_month);
-			final EditText etDay = (EditText) getDialog().findViewById(R.id.inputText_day);
-			etYear.setFilters(new InputFilter[]{ new InputFilterMinMax(0, 40),new InputFilter.LengthFilter(2)});
-			etMonth.setFilters(new InputFilter[]{ new InputFilterMinMax(0, 12),new InputFilter.LengthFilter(2)});
-			etDay.setFilters(new InputFilter[]{ new InputFilterMinMax(0, 31),new InputFilter.LengthFilter(2)});
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            // Get the layout inflater
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            builder.setTitle("請輸入役期");
+            // Inflate and set the layout for the dialog
+            // Pass null as the parent view because its going in the dialog layout
+            builder.setView(inflater.inflate(R.layout.dialog_custom_service_range, null))
+                    // Add action buttons
+                    .setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            sCustomServiceRangeArray[0] = ((EditText) getDialog().findViewById(R.id.inputText_year)).getText().toString();
+                            sCustomServiceRangeArray[1] = ((EditText) getDialog().findViewById(R.id.inputText_month)).getText().toString();
+                            sCustomServiceRangeArray[2] = ((EditText) getDialog().findViewById(R.id.inputText_day)).getText().toString();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            CustomRangeDialogFragment.this.getDialog().cancel();
+                        }
+                    });
+            return builder.create();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            final EditText etYear = (EditText) getDialog().findViewById(R.id.inputText_year);
+            final EditText etMonth = (EditText) getDialog().findViewById(R.id.inputText_month);
+            final EditText etDay = (EditText) getDialog().findViewById(R.id.inputText_day);
+            etYear.setFilters(new InputFilter[]{new InputFilterMinMax(0, 40), new InputFilter.LengthFilter(2)});
+            etMonth.setFilters(new InputFilter[]{new InputFilterMinMax(0, 12), new InputFilter.LengthFilter(2)});
+            etDay.setFilters(new InputFilter[]{new InputFilterMinMax(0, 31), new InputFilter.LengthFilter(2)});
 
 
-			etYear.setText(sCustomServiceRangeArray[0]);
-			etMonth.setText(sCustomServiceRangeArray[1]);
-			etDay.setText(sCustomServiceRangeArray[2]);
+            etYear.setText(sCustomServiceRangeArray[0]);
+            etMonth.setText(sCustomServiceRangeArray[1]);
+            etDay.setText(sCustomServiceRangeArray[2]);
 
-			etYear.addTextChangedListener(new TextWatcher() {
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-				}
+            etYear.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
 
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-				@Override
-				public void afterTextChanged(Editable s) {
-					String str = etYear.getText().toString().trim();
-					if (str.equals("")) {
-						etYear.setText("0");
-						etYear.selectAll();
-					}
-				}
-			});
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String str = etYear.getText().toString().trim();
+                    if (str.equals("")) {
+                        etYear.setText("0");
+                        etYear.selectAll();
+                    }
+                }
+            });
 
-			etMonth.addTextChangedListener(new TextWatcher() {
+            etMonth.addTextChangedListener(new TextWatcher() {
 
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-				}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
 
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-				@Override
-				public void afterTextChanged(Editable s) {
-					String str = etMonth.getText().toString().trim();
-					if (str.equals("")) {
-						etMonth.setText("0");
-						etMonth.selectAll();
-					}
-				}
-			});
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String str = etMonth.getText().toString().trim();
+                    if (str.equals("")) {
+                        etMonth.setText("0");
+                        etMonth.selectAll();
+                    }
+                }
+            });
 
-			etDay.addTextChangedListener(new TextWatcher() {
+            etDay.addTextChangedListener(new TextWatcher() {
 
-				@Override
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
-				}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
 
-				@Override
-				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				}
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-				@Override
-				public void afterTextChanged(Editable s) {
-					String str = etDay.getText().toString().trim();
-					if (str.equals("")) {
-						etDay.setText("0");
-						etDay.selectAll();
-					}
-				}
-			});
-			Log.d("AA", "BB");
-		}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String str = etDay.getText().toString().trim();
+                    if (str.equals("")) {
+                        etDay.setText("0");
+                        etDay.selectAll();
+                    }
+                }
+            });
+            Log.d("AA", "BB");
+        }
 
-		@Override
-		public void onDismiss(DialogInterface dialog) {
-			sCustomServiceRangeArray[0] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[0]));
-			sCustomServiceRangeArray[1] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[1]));
-			sCustomServiceRangeArray[2] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[2]));
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            sCustomServiceRangeArray[0] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[0]));
+            sCustomServiceRangeArray[1] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[1]));
+            sCustomServiceRangeArray[2] = String.valueOf(Integer.valueOf(sCustomServiceRangeArray[2]));
 
-			Log.d(TAG, "Y:" + sCustomServiceRangeArray[0]);
-			Log.d(TAG, "M:" + sCustomServiceRangeArray[1]);
-			Log.d(TAG, "D:" + sCustomServiceRangeArray[2]);
+            Log.d(TAG, "Y:" + sCustomServiceRangeArray[0]);
+            Log.d(TAG, "M:" + sCustomServiceRangeArray[1]);
+            Log.d(TAG, "D:" + sCustomServiceRangeArray[2]);
 
-			calCustomServiceRange(sCustomServiceRangeArray);
+            calCustomServiceRange(sCustomServiceRangeArray);
 
-			if (mCustomServiceRange) {
-				if (mServiceRangeArrayList.size() != RANGE_CUSTOM)
-					mServiceRangeArrayList.remove(RANGE_CUSTOM);
-				mServiceDayAdapter.add(calCustomServiceRange(sCustomServiceRangeArray));
-				mSpinnerServiceDay.setSelection(RANGE_CUSTOM);
-			} else if (mServiceRangeArrayList.size() != RANGE_CUSTOM) {
-				mServiceRangeArrayList.remove(RANGE_CUSTOM);
-			}
-			mServiceDayAdapter.notifyDataSetChanged();
+            if (mCustomServiceRange) {
+                if (mServiceRangeArrayList.size() != RANGE_CUSTOM)
+                    mServiceRangeArrayList.remove(RANGE_CUSTOM);
+                mServiceDayAdapter.add(calCustomServiceRange(sCustomServiceRangeArray));
+                mSpinnerServiceDay.setSelection(RANGE_CUSTOM);
+            } else if (mServiceRangeArrayList.size() != RANGE_CUSTOM) {
+                mServiceRangeArrayList.remove(RANGE_CUSTOM);
+            }
+            mServiceDayAdapter.notifyDataSetChanged();
 
-			getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-			loadUserData();
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            loadUserData();
 
-			super.onDismiss(dialog);
-		}
-	}
+            super.onDismiss(dialog);
+        }
+    }
 
 }
