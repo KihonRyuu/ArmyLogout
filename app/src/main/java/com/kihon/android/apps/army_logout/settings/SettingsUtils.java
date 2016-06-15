@@ -24,6 +24,9 @@ public class SettingsUtils {
     private static final String PREF_JOB_NO = "pref_job_no";
     private static final String PREF_PASSWORD = "pref_password";
 
+    private static final String PREF_LOGIN_DATE_MILLIS = "pref_login_date_millis";
+    private static final String PREF_MILITARY_INFO = "pref_military_info";
+
     public static void setDeviceId(String deviceId) {
         sSharedPreferences.edit().putString(PREF_DEVICE_ID, deviceId).apply();
     }
@@ -55,7 +58,16 @@ public class SettingsUtils {
         return sSharedPreferences.getString(PREF_GCM_TOKEN, "FAKE_" + getDeviceId());
     }
 
-    public static void setLoginMillis() {
+    public static void setLoginMillis(long loginMillis) {
+        sSharedPreferences.edit().putLong(PREF_LOGIN_DATE_MILLIS, loginMillis).apply();
+    }
+
+    public static String getMilitaryInfo() {
+        return sSharedPreferences.getString(PREF_MILITARY_INFO, null);
+    }
+
+    public static void setMilitaryInfo(String jsonString) {
+        sSharedPreferences.edit().putString(PREF_MILITARY_INFO, jsonString).apply();
 
     }
 }

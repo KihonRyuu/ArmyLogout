@@ -6,18 +6,16 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
-
-import java.util.Calendar;
 
 /**
  * Created by kihon on 2016/06/08.
  */
 public class ServiceUtil {
 
-    private final Calendar mCalendar = Calendar.getInstance();
-    private final Calendar mStartCalendar = Calendar.getInstance();
     private final long mStartTime;
     private final MainActivity.ServiceTime mServiceTime;
     private final DateTime mStartDateTime;
@@ -26,23 +24,24 @@ public class ServiceUtil {
     private DateTime mRealLogoutDateTime;
     private Period mPeriod;
 
-    /*public ServiceUtil(long startTimeInMillis) {
-        mStartTime = startTimeInMillis;
-        mStartCalendar.setTimeInMillis(startTimeInMillis);
-        mStartDateTime = new DateTime(startTimeInMillis);
-    }*/
-
     public ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays) {
         mStartTime = startTimeInMillis;
         mServiceTime = serviceTime;
         mDiscountDays = discountDays;
         mStartDateTime = new DateTime(startTimeInMillis);
         setEndTime();
-//        mStandLogoutDateTime = new DateTime(startTimeInMillis + getServiceTime());
+    }
+
+    public ServiceUtil(MainActivity.MilitaryInfo militaryInfo) {
+        this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount());
+    }
+
+    public String getLoginDateString() {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy年M月d日");
+        return mStartDateTime.toString(fmt);
     }
 
     private void setEndTime() {
-//        mStandLogoutDateTime = new DateTime(mStartTime);
         switch (mServiceTime) {
             case ONE_YEAR:
                 mStandLogoutDateTime = mStartDateTime.plusYears(1);
@@ -117,5 +116,9 @@ public class ServiceUtil {
     public void setDiscountDays(int value) {
         mDiscountDays = value;
         setEndTime();
+    }
+
+    public int getDiscountDays() {
+        return mDiscountDays;
     }
 }

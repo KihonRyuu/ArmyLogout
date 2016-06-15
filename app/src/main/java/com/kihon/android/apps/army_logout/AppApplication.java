@@ -1,5 +1,8 @@
 package com.kihon.android.apps.army_logout;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import android.app.Application;
 
 /**
@@ -13,6 +16,10 @@ public class AppApplication extends Application {
     public void onCreate() {
         sInstance = this;
         super.onCreate();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+//        gsonBuilder.setLongSerializationPolicy( LongSerializationPolicy.STRING );
+        Gson gson = gsonBuilder.create();
     }
 
     public synchronized static AppApplication getInstance() {

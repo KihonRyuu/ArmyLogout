@@ -1,5 +1,7 @@
 package com.kihon.android.apps.army_logout;
 
+import com.google.gson.Gson;
+
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.facebook.FacebookRequestError;
@@ -11,8 +13,12 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
 import com.github.OrangeGangsters.circularbarpager.library.CircularBarPager;
+import com.kihon.android.apps.army_logout.settings.SettingsUtils;
 import com.viewpagerindicator.CirclePageIndicator;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.json.JSONException;
@@ -22,6 +28,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,10 +47,12 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -69,6 +78,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -79,14 +89,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import at.grabner.circleprogress.AnimationState;
 import at.grabner.circleprogress.AnimationStateChangedListener;
@@ -219,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
     private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
     private String mCustomServiceRangeText = null;
     private ArrayAdapter<String> mServiceDayAdapter;
-    private int mDeleteDay;
+//    private int mDeleteDay;
     private String mCountTimeText;
 
     private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
@@ -237,7 +248,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
 
-            mServiceUtil = new ServiceUtil(mLoginDateCalendar.getTimeInMillis(), mServiceTime, mDeleteDay);
+//            mServiceUtil = new ServiceUtil(mLoginDateCalendar.getTimeInMillis(), mServiceTime, mDeleteDay);
+            mServiceUtil = new ServiceUtil(mMilitaryInfo);
 
             if (mServiceUtil.isLoggedIn()) {
                 mTvUntilLogoutTitle.setText("距離退伍還剩下");
@@ -273,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                     case 1:
-                        userBottomTextView.setVisibility(View.VISIBLE);
+                        userBottomTextView.setVisibility(View.GONE);
                         PeriodFormatter formatter = new PeriodFormatterBuilder()
                                 .printZeroAlways().appendDays().appendSuffix("天")
                                 .toFormatter();
@@ -307,13 +319,121 @@ public class MainActivity extends AppCompatActivity {
                 mTvUntilLogoutDays.setText("0天 00:00:00");
             }
 
+            Object[][] infos = new Object[][]{new Object[]{R.drawable.ic_date_range_black_24dp, "入伍日期", mServiceUtil.getLoginDateString()},
+                    new Object[]{R.drawable.ic_directions_run_black_24dp, "役期", mServiceTime.getDisplayText()},
+                    new Object[]{R.drawable.ic_all_inclusive_black_24px, "折抵", mServiceUtil.getDiscountDays() + "天"},
+                    new Object[]{R.drawable.ic_school_black_24dp, "距離退伍剩下", mServiceUtil.getRemainingDayWithString()}};
+
+            if (mInfoAdapter == null) {
+                mData = new ArrayList<>();
+                mInfoAdapter = new InfoAdapter(MainActivity.this, mData);
+                mRecyclerView.setAdapter(mInfoAdapter);
+            } else {
+                mData.clear();
+                mInfoAdapter.notifyDataSetChanged();
+            }
+
+            for (Object[] info : infos) {
+                HashMap<String, Object> item = new HashMap<>();
+                item.put("icon", info[0]);
+                item.put("title", info[1].toString());
+                item.put("subtitle", info[2].toString());
+                mData.add(item);
+            }
+
+
             //END
             mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
         }
 
     };
+    private InfoAdapter mInfoAdapter;
+    private List<HashMap<String, Object>> mData;
+    private MilitaryInfo mMilitaryInfo;
+
+    private void onSettingsSelected(int position, View v) {
+        switch (position) {
+            case 0:
+                DateTime dateTime = new DateTime(mMilitaryInfo.getBegin());
+
+                int year = dateTime.getYear();
+                int monthOfYear = dateTime.getMonthOfYear() - 1;
+                int dayOfMonth = dateTime.getDayOfMonth();
+
+                DatePickerDialog loginDatePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        Log.d(TAG, year + "年" + monthOfYear + "月" + dayOfMonth + "日");
+                        mMilitaryInfo.setBegin(new DateTime(year, monthOfYear + 1, dayOfMonth, 0, 0).getMillis());
+                    }
+                }, year, monthOfYear, dayOfMonth);
+                loginDatePickerDialog.show();
+                break;
+            case 1:
+//                Context wrapper = new ContextThemeWrapper(v.getContext(), v.getContext().getTheme());
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+                for (int i = 0; i < ServiceTime.values().length; i++) {
+                    popupMenu.getMenu().add(0, i, 0, ServiceTime.values()[i].getDisplayText());
+                }
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        /*if (item.getItemId() == ServiceTime.values().length - 1) {
+                            mCustomRangeDialog.show(getFragmentManager(),"custom_range_dialog");
+                        } else {
+                            sIntServiceRange = item.getItemId();
+                            loadUserData();
+                        }*/
+                        mMilitaryInfo.setPeriod(item.getItemId());
+//                        sIntServiceRange = item.getItemId();
+//                        loadUserData();
+                        return false;
+                    }
+                });
+                popupMenu.show();
+                break;
+            case 2:
+                final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(MainActivity.this)
+                        .minValue(0)
+                        .maxValue(30)
+                        .defaultValue(mMilitaryInfo.getDiscount())
+                        .backgroundColor(Color.WHITE)
+                        .separatorColor(Color.TRANSPARENT)
+                        .textColor(Color.BLACK)
+                        .textSize(20)
+                        .enableFocusability(false)
+                        .wrapSelectorWheel(true)
+                        .build();
+                new MaterialDialog.Builder(MainActivity.this)
+                        .customView(numberPicker, false)
+                        .title("折抵天數")
+                        .positiveText(android.R.string.ok)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                mDeleteDayButton.setText(String.valueOf(numberPicker.getValue()));
+                                mMilitaryInfo.setDiscount(numberPicker.getValue());
+                            }
+                        })
+                        .dismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                mDeleteDayButton.setText(String.valueOf(numberPicker.getValue()));
+                                mMilitaryInfo.setDiscount(numberPicker.getValue());
+                            }
+                        })
+                        .show();
+                break;
+            default:
+                break;
+        }
+    }
+
     private CirclePageIndicator mCirclePageIndicator;
     private ViewPager mViewPager;
+
+    @BindView(R.id.recycler_view)
+    RecyclerView mRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -325,8 +445,42 @@ public class MainActivity extends AppCompatActivity {
 
         mBreakMonthBlock.setVisibility(View.GONE);
 
-        restorePrefs();
-        loadUserData();
+        /**
+         * Data Trans Legacy
+         */
+        String legacyLoginDate = getSharedPreferences(PREF, Context.MODE_PRIVATE).getString(PREF_LOGINDATE, "");
+        if (!legacyLoginDate.isEmpty()) {
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+            long loginMillis = fmt.parseMillis(legacyLoginDate);
+
+            SharedPreferences settings = getSharedPreferences(PREF, Context.MODE_PRIVATE);
+            int deleteDays = Integer.parseInt(settings.getString(PREF_DELETEDAY, null));
+            int serviceRange = settings.getInt(PREF_SERVICERANGE, 0);
+
+            switch (serviceRange) {
+                case RANGE_DEFAULT_ONE_YEAR:
+                    mServiceTime = ServiceTime.ONE_YEAR;
+                    break;
+                case RANGE_FOUR_MONTH:
+                    mServiceTime = ServiceTime.FOUR_MONTHS;
+                    break;
+                case RANGE_ONE_YEAR_FIFTEEN:
+                    mServiceTime = ServiceTime.ONE_YEAR_FIFTH_DAYS;
+                    break;
+                default:
+                    mServiceTime = ServiceTime.FOUR_YEARS;
+                    break;
+            }
+
+            mMilitaryInfo = new MilitaryInfo(loginMillis, mServiceTime, deleteDays);
+            SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
+            getSharedPreferences(PREF, Context.MODE_PRIVATE).edit().clear().apply();
+        } else {
+            mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
+        }
+
+//        restorePrefs();
+//        loadUserData();
         setListeners();
         initCircleView();
         new LongOperation().execute();
@@ -359,6 +513,70 @@ public class MainActivity extends AppCompatActivity {
 //        mCirclePageIndicator.setStrokeColor(0xFF000000);
 //        mCirclePageIndicator.setStrokeWidth();
 //        mCirclePageIndicator.setRadius();
+
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setNestedScrollingEnabled(false);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        ItemClickSupport.addTo(mRecyclerView).setOnItemClickListener(
+                new ItemClickSupport.OnItemClickListener() {
+                    @Override
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                        onSettingsSelected(position, v);
+                    }
+                }
+        );
+
+
+    }
+
+    public static class InfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private final LayoutInflater mLayoutInflater;
+        private final List<? extends Map<String, Object>> mData;
+
+        public InfoAdapter(Context context, List<? extends Map<String, Object>> data) {
+            mLayoutInflater = LayoutInflater.from(context);
+            mData = data;
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new ItemViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+            if (holder instanceof ItemViewHolder) {
+                ((ItemViewHolder) holder).icon.setImageResource((Integer) mData.get(position).get("icon"));
+                ((ItemViewHolder) holder).title.setText(mData.get(position).get("title").toString());
+                ((ItemViewHolder) holder).subtitle.setText(mData.get(position).get("subtitle").toString());
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+//                ((ItemViewHolder) holder).time.setText(sdf.format(item.cutoffDatetime));
+//                ImageLoader.getInstance().displayImage(item.avatar, ((ItemViewHolder) holder).profilePicture);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return mData.size();
+        }
+
+        class ItemViewHolder extends RecyclerView.ViewHolder {
+
+            @BindView(R.id.imageView)
+            ImageView icon;
+            @BindView(R.id.title)
+            TextView title;
+            @BindView(R.id.subtitle)
+            TextView subtitle;
+//            @BindView(R.id.time) TextView time;
+
+            public ItemViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+            }
+        }
     }
 
     private void selectItem(int position) {
@@ -436,45 +654,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(MainActivity.this)
-                .minValue(0)
-                .maxValue(30)
-                .defaultValue(mDeleteDay)
-                .backgroundColor(Color.WHITE)
-                .separatorColor(Color.TRANSPARENT)
-                .textColor(Color.BLACK)
-                .textSize(20)
-                .enableFocusability(false)
-                .wrapSelectorWheel(true)
-                .build();
-
-        mDeleteDayButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new MaterialDialog.Builder(MainActivity.this)
-                        .customView(numberPicker, false)
-                        .title("折抵天數")
-                        .positiveText(android.R.string.ok)
-                        .onPositive(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
-                                mDeleteDay = numberPicker.getValue();
-                                loadUserData();
-                            }
-                        })
-                        .dismissListener(new DialogInterface.OnDismissListener() {
-                            @Override
-                            public void onDismiss(DialogInterface dialog) {
-                                mDeleteDayButton.setText(String.valueOf(mDeleteDay = numberPicker.getValue()));
-                                mDeleteDay = numberPicker.getValue();
-                                loadUserData();
-                            }
-                        })
-                        .show();
-            }
-        });
-
         /**
          *  自訂役期下拉選單初始化及設定監聽器
          *
@@ -504,7 +683,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 sIntServiceRange = position;
-                loadUserData();
+//                loadUserData();
             }
 
             @Override
@@ -646,9 +825,11 @@ public class MainActivity extends AppCompatActivity {
         mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
         mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
 
-        savePrefs();
+//        savePrefs();
     }
 
+/*
+    @Deprecated
     private void savePrefs() {
         SharedPreferences settings = getSharedPreferences(PREF, 0);
         settings.edit()
@@ -665,10 +846,12 @@ public class MainActivity extends AppCompatActivity {
                 .putString(PREF_CUSTOM_SERVICERANGE_DAY, sCustomServiceRangeArray[2])
                 .apply();
     }
+*/
 
-    // Restore preferences
+    /*@Deprecated
     private void restorePrefs() {
-        SharedPreferences settings = getSharedPreferences(PREF, 0);
+
+        SharedPreferences settings = getSharedPreferences(PREF, Context.MODE_PRIVATE);
         String prefLoginDate = settings.getString(PREF_LOGINDATE, "");
         String prefDeleteDays = settings.getString(PREF_DELETEDAY, "");
 
@@ -693,8 +876,9 @@ public class MainActivity extends AppCompatActivity {
         calCustomServiceRange(sCustomServiceRangeArray);
 
         mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
-    }
+    }*/
 
+    /*@Deprecated
     private void loadUserData() {
         try {
 //            if(sLoginDate)
@@ -752,7 +936,7 @@ public class MainActivity extends AppCompatActivity {
         mTvLogoutDate.setText(year + "年" + month + "月" + day + "日");
 //		String logout_date = year+"-"+(month)+"-"+day;
 //		LOGOUT_TIME = logout_date;
-    }
+    }*/
 
     private void publishStory(String post_message, boolean takepic) throws Exception {
         String graphPath = "me/feed";
@@ -876,7 +1060,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void showDatePickerDialog(View v) {
+    /*public void showDatePickerDialog(View v) {
 //		DialogFragment newFragment = new DatePickerFragment();
 //		newFragment.show(getFragmentManager(), "datePicker");
         Calendar calendar = mLoginDateCalendar;
@@ -900,7 +1084,7 @@ public class MainActivity extends AppCompatActivity {
         };
         DatePickerDialog pickerDialog = new DatePickerDialog(this, callBack, year, monthOfYear, dayOfMonth);
         pickerDialog.show();
-    }
+    }*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -1040,7 +1224,7 @@ public class MainActivity extends AppCompatActivity {
             //	        	return true;
             case R.id.action_about:
                 DialogFragment dialogFragment = new AboutDialogFragment();
-                dialogFragment.show(getSupportFragmentManager(), "aboutDialog");
+                dialogFragment.show(getFragmentManager(), "aboutDialog");
                 return true;
             case R.id.action_changelog:
                 ChangeLog cl = new ChangeLog(this);
@@ -1069,7 +1253,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public enum ServiceTime {
-        ONE_YEAR, FOUR_YEARS, ONE_YEAR_FIFTH_DAYS, FOUR_MONTHS
+        ONE_YEAR("一年"), FOUR_YEARS("四年"), ONE_YEAR_FIFTH_DAYS("一年十五天"), FOUR_MONTHS("四個月"),
+        FOUR_MONTHS_FIVE_DAYS("四個月五天"), SIX_MONTHS("六個月"), THREE_YEARS("三年"), ONE_YEAR_SIX_MONTHS("一年六個月"), TEN_MONTHS("十個月");
+//        ,CUSTOM("自訂");
+
+        private final String mDisplayText;
+
+        ServiceTime(String displayText) {
+            mDisplayText = displayText;
+        }
+
+        public String getDisplayText() {
+            return mDisplayText;
+        }
     }
 
     interface UpdateCallbacks {
@@ -1219,7 +1415,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 	/*private void sendRequestDialog() {
-		Bundle params = new Bundle();
+        Bundle params = new Bundle();
 		params.putString("message", "期待我們早日回陽間生活吧!!");
 
 		WebDialog requestsDialog = (new WebDialog.RequestsDialogBuilder(MainActivity.this, Session.getActiveSession(), params)).setOnCompleteListener(new WebDialog.OnCompleteListener() {
@@ -1402,10 +1598,66 @@ public class MainActivity extends AppCompatActivity {
             mServiceDayAdapter.notifyDataSetChanged();
 
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-            loadUserData();
+//            loadUserData();
 
             super.onDismiss(dialog);
         }
     }
 
+    public static class MilitaryInfo {
+
+        private long begin;
+        private int period;
+        private int discount;
+
+        public static MilitaryInfo parse(String jsonString) {
+            if (jsonString == null) {
+                return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), ServiceTime.ONE_YEAR, 30).getJsonString(), MilitaryInfo.class);
+            } else {
+                return new Gson().fromJson(jsonString, MilitaryInfo.class);
+            }
+        }
+
+        public MilitaryInfo(long loginMillis, ServiceTime serviceTime, int deleteDays) {
+            begin = loginMillis;
+            period = serviceTime.ordinal();
+            discount = deleteDays;
+        }
+
+        public String getJsonString() {
+            return new Gson().toJson(this);
+        }
+
+        public long getBegin() {
+            return begin;
+        }
+
+        public int getPeriod() {
+            return period;
+        }
+
+        public int getDiscount() {
+            return discount;
+        }
+
+        public MilitaryInfo setBegin(long begin) {
+            this.begin = begin;
+            return this;
+        }
+
+        public MilitaryInfo setPeriod(ServiceTime period) {
+            this.period = period.ordinal();
+            return this;
+        }
+
+        public MilitaryInfo setPeriod(int period) {
+            this.period = period;
+            return this;
+        }
+
+        public MilitaryInfo setDiscount(int discount) {
+            this.discount = discount;
+            return this;
+        }
+    }
 }
