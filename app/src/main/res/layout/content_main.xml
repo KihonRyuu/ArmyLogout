@@ -13,21 +13,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin">
+        android:orientation="vertical">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin">
 
             <at.grabner.circleprogress.CircleProgressView
                 android:id="@+id/circleView"
-                android:visibility="gone"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
+                android:visibility="gone"
                 CircleProgressView:cpv_autoTextSize="true"
                 CircleProgressView:cpv_barColor="@color/colorPrimary"
                 CircleProgressView:cpv_barWidth="6dp"
@@ -48,11 +55,11 @@
 
             <com.github.OrangeGangsters.circularbarpager.library.CircularBarPager
                 android:id="@+id/circularBarPager"
-                android:layout_height="250dp"
+                style="@style/CircularBarPagerStyle"
                 android:layout_width="match_parent"
+                android:layout_height="250dp"
                 android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                style="@style/CircularBarPagerStyle"/>
+                android:paddingRight="30dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -118,6 +125,7 @@
 
                     <Button
                         android:id="@+id/login_date_btn"
+                        style="@style/Widget.AppCompat.Button.Borderless"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:onClick="showDatePickerDialog"
@@ -153,6 +161,7 @@
 
                 <Button
                     android:id="@+id/delete_day_button"
+                    style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.8"
