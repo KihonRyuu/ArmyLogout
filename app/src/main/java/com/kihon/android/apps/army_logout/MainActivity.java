@@ -138,13 +138,10 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
      * The animation time in milliseconds that we take to display the steps taken
      */
     private static final int BAR_ANIMATION_TIME = 1000;
-    public static boolean NETWORK_CONNECTED = false;
-    //private int total_day = 365;
     protected static float sLoginPercent;
     protected static int sLogoutYear = 0;
     protected static int sLogoutDay = 0;
     static boolean login_yet = false;
-    //	private static String LOGOUT_TIME = null;
     private static String USER_FB_NAME = "弟兄";
     private static int sIntServiceRange = 0;
     /**
