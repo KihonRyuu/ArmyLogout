@@ -1,29 +1,14 @@
 package com.kihon.android.apps.army_logout;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.facebook.FacebookRequestError;
 import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.RequestAsyncTask;
 import com.facebook.Response;
 import com.facebook.Session;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -42,7 +27,6 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -56,11 +40,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ImageView.ScaleType;
-import android.widget.LinearLayout;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class ShareTo extends ActionBarActivity {
 	
@@ -88,13 +87,9 @@ public class ShareTo extends ActionBarActivity {
 	private TextView mText1;
 	private TextView mLocationText;
 	
-	private Calendar mCalendar = Calendar.getInstance();
-	
 	private Uri outputFileUri;
 	private Intent intent =  new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 	private boolean openCam = true;
-	
-	private Handler mPostHandler = new Handler();
 	
 	private static String POST_MESSAGE = "";
 	

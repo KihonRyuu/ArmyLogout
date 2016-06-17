@@ -50,4 +50,13 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
 
+    <string name="color_palette">換個顏色</string>
+    <string name="md_back_label">返回</string>
+    <string name="md_cancel_label">取消</string>
+    <string name="md_choose_label">選擇</string>
+    <string name="md_custom_label">自訂</string>
+    <string name="md_done_label">完成</string>
+    <string name="md_error_label">錯誤</string>
+    <string name="md_presets_label">預設</string>
+
 </resources>
