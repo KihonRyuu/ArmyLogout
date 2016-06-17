@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_drawer"
+        android:visibility="gone"
         app:borderWidth="0dp"
         app:elevation="6dp"
         app:fabSize="normal"

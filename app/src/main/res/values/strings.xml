@@ -17,8 +17,8 @@
     <string name="cancel">取消</string>
     <string name="about">關於</string>
     <string name="connect_fb">與臉書連動</string>
-    <string name="about_app_name">關於國軍弟兄返陽倒數計時器</string>
-    <string name="about_text">\r\n作者:Kihon\r\n\r\n歡迎至Facebook粉絲團反應您的問題\r\nhttp://www.facebook.com/ArmyLogout</string>
+    <string name="about_app_name">關於 國軍弟兄返陽倒數計時器</string>
+    <string name="about_text">作者:Kihon\r\n\r\n有任何建議或問題歡迎透過Facebook粉絲專頁聯絡我</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="changelog_full_title">Change Log</string>

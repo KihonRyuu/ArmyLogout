@@ -17,3 +17,7 @@ allprojects {
         maven { url 'http://dl.bintray.com/populov/maven/' }
     }
 }
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

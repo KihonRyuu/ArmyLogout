@@ -4,7 +4,6 @@ import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-import com.google.gson.Gson;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -18,6 +17,14 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
 import com.github.OrangeGangsters.circularbarpager.library.CircularBarPager;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.CompositePermissionListener;
+import com.karumi.dexter.listener.single.PermissionListener;
+import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
 import com.kihon.android.apps.army_logout.settings.SettingsUtils;
 import com.viewpagerindicator.CirclePageIndicator;
 
@@ -29,6 +36,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -39,8 +47,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -52,21 +58,21 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.InputFilter;
-import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.text.method.LinkMovementMethod;
-import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -77,6 +83,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -113,8 +121,9 @@ import at.grabner.circleprogress.TextMode;
 import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import jp.wasabeef.recyclerview.animators.holder.AnimateViewHolder;
 
-public class MainActivity extends AppCompatActivity implements OnStartDragListener {
+public class MainActivity extends AppCompatActivity implements OnStartDragListener, ActionMode.Callback {
 
     public static final String PREF = "ARMY_LOGOUT_PREF";
     public static final String PREF_LOGINDATE = "ARMY_LOGOUT_LoginDate";
@@ -216,6 +225,10 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     Toolbar mToolbar;
     @BindView(R.id.circleView)
     CircleProgressView mCircleView;
+    @BindView(R.id.recycler_view)
+    RecyclerView mRecyclerView;
+    @BindView(R.id.menu_settings)
+    FloatingActionButton mFab;
     private Button shareButton;
     private boolean pendingPublishReauthorization = false;
     private Handler mRefreshInformationHandler = new Handler();
@@ -239,7 +252,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     private ArrayAdapter<String> mServiceDayAdapter;
     //    private int mDeleteDay;
     private String mCountTimeText;
-
     private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
 
         @Override
@@ -249,13 +261,16 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     };
     private ServiceUtil mServiceUtil;
     private DemoView[] mDemoViews;
+    private InfoAdapter mInfoAdapter;
+    private List<InfoItem> mData;
+    private MilitaryInfo mMilitaryInfo;
+    private ItemTouchHelper mTouchHelper;
     //    private ServiceTime mServiceTime = ServiceTime.ONE_YEAR;
     private Runnable mRefreshInformationRunnable = new Runnable() {
 
         @Override
         public void run() {
 
-//            mServiceUtil = new ServiceUtil(mLoginDateCalendar.getTimeInMillis(), mServiceTime, mDeleteDay);
             mServiceUtil = new ServiceUtil(mMilitaryInfo);
 
             if (mServiceUtil.isLoggedIn()) {
@@ -266,15 +281,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 mTvUntilLogoutTitle.setText("距離入伍還剩下");
                 mTvStatus.setText("準備好踏入陰間了嗎？");
             }
-
-           /* String percentText = new DecimalFormat("#.#").format(mServiceUtil.getPercentage());
-            if (mServiceUtil.getPercentage() >= 100.0f) {
-                mTvLoginPercent.setText("100%");
-            } else if (mServiceUtil.getPercentage() <= 0.0f) {
-                mTvLoginPercent.setText("0%");
-            } else {
-                mTvLoginPercent.setText(percentText + "%");
-            }*/
 
             for (int i = 0; i < mDemoViews.length; i++) {
                 TextView valueInfoTextView = mDemoViews[i].mValueInfoTextview;
@@ -326,18 +332,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 mTvUntilLogoutDays.setText("0天 00:00:00");
             }
 
-//            InfoItem infoItems = new InfoItem(mServiceUtil);
-
-
-           /* Object[][] infos = new Object[][]{
-                    new Object[]{R.drawable.ic_date_range_black_24dp, "入伍日期", mServiceUtil.getLoginDateString()},
-                    new Object[]{R.drawable.ic_access_time_black_24dp, "役期", mServiceUtil.getServiceTime().getDisplayText()},
-                    new Object[]{R.drawable.ic_directions_run_black_24dp, "退伍日期", mServiceUtil.getRealLogoutDateString()},
-                    new Object[]{R.drawable.ic_all_inclusive_black_24px, "折抵", String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays())},
-                    new Object[]{R.drawable.ic_time_countdown_black_24dp, "距離退伍剩下", mServiceUtil.getRemainingDayWithString()},
-                    new Object[]{R.drawable.ic_school_black_24dp, "退伍令下載進度", mServiceUtil.getPercentage()}};
-*/
-
             if (mInfoAdapter == null) {
                 mData = new ArrayList<>();
                 mInfoAdapter = new InfoAdapter(MainActivity.this, mData, MainActivity.this);
@@ -345,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 ItemTouchHelper.Callback callback = new InfoItemTouchHelperCallback(mInfoAdapter);
                 mTouchHelper = new ItemTouchHelper(callback);
                 mTouchHelper.attachToRecyclerView(mRecyclerView);
+                mRecyclerView.getItemAnimator().setAddDuration(5000);
             } else {
                 mData.clear();
                 mInfoAdapter.notifyDataSetChanged();
@@ -360,16 +355,15 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                     mData.add(InfoItem.values()[index]);
                 }
             }
+            mInfoAdapter.notifyItemRangeInserted(0, InfoItem.values().length);
 
             //END
             mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
         }
 
     };
-    private InfoAdapter mInfoAdapter;
-    private List<InfoItem> mData;
-    private MilitaryInfo mMilitaryInfo;
-    private ItemTouchHelper mTouchHelper;
+    private CirclePageIndicator mCirclePageIndicator;
+    private ViewPager mViewPager;
 
     private void onSettingsSelected(int position, View v) {
         switch (mData.get(position)) {
@@ -455,12 +449,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         }
     }
 
-    private CirclePageIndicator mCirclePageIndicator;
-    private ViewPager mViewPager;
-
-    @BindView(R.id.recycler_view)
-    RecyclerView mRecyclerView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -468,7 +456,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         ButterKnife.bind(this);
 
         setSupportActionBar(mToolbar);
-
         mBreakMonthBlock.setVisibility(View.GONE);
 
         /**
@@ -506,8 +493,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
             mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
         }
 
-//        restorePrefs();
-//        loadUserData();
+
         setListeners();
         initCircleView();
 
@@ -543,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setNestedScrollingEnabled(false);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+//        mRecyclerView.setItemAnimator(new FadeInAnimator(new OvershootInterpolator(1f)));
         ItemClickSupport.addTo(mRecyclerView).setOnItemClickListener(
                 new ItemClickSupport.OnItemClickListener() {
                     @Override
@@ -553,6 +539,12 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 }
         );
 
+        mFab.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
     @Override
@@ -560,239 +552,42 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         mTouchHelper.startDrag(viewHolder);
     }
 
-    public class InfoItemTouchHelperCallback extends ItemTouchHelper.Callback {
-
-        private final ItemTouchHelperAdapter mAdapter;
-
-        public InfoItemTouchHelperCallback(ItemTouchHelperAdapter adapter) {
-            mAdapter = adapter;
-        }
-
-        @Override
-        public boolean isLongPressDragEnabled() {
-            return false;
-        }
-
-        @Override
-        public boolean isItemViewSwipeEnabled() {
-            return false;
-        }
-
-        @Override
-        public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-            switch (actionState) {
-                case ItemTouchHelper.ACTION_STATE_DRAG:
-                    mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
-                    break;
-                case ItemTouchHelper.ACTION_STATE_IDLE:
-                    mRefreshInformationHandler.post(mRefreshInformationRunnable);
-                    if (viewHolder instanceof ItemTouchHelperViewHolder) {
-                        ItemTouchHelperViewHolder itemViewHolder = (ItemTouchHelperViewHolder) viewHolder;
-                        itemViewHolder.onItemSelected();
-                    }
-                    break;
-            }
-
-            super.onSelectedChanged(viewHolder, actionState);
-        }
-
-        @Override
-        public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
-            int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
-            return makeMovementFlags(dragFlags, swipeFlags);
-        }
-
-        @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
-                              RecyclerView.ViewHolder target) {
-            mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
-            return true;
-        }
-
-        @Override
-        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-            mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
-        }
-
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.reorder, menu);
+       /* MenuItem saveItem = menu.add("Restore Default").setIcon(R.drawable.ic_settings_backup_restore_white_24dp);
+        MenuItemCompat.setShowAsAction(saveItem, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);*/
+        return true;
     }
 
-    public static class InfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        mode.setTitle("排序");
+        mInfoAdapter.onReorderMode(true);
+        return false;
+    }
 
-        private final LayoutInflater mLayoutInflater;
-        private final List<InfoItem> mData;
-        private final OnStartDragListener mDragStartListener;
-        private final Context mContext;
-        private ServiceUtil mServiceUtil;
-        private boolean isReorder;
-
-        public InfoAdapter(Context context, List<InfoItem> data, OnStartDragListener dragStartListener) {
-            mContext = context;
-            mLayoutInflater = LayoutInflater.from(context);
-            mData = data;
-            mDragStartListener = dragStartListener;
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            return mData.get(position) == InfoItem.CounterProgressbar ? 1 : 0;
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (viewType == 0)
-                return new ItemViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list, parent, false));
-            else
-                return new ProgressbarViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list_2, parent, false));
-        }
-
-        @Override
-        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-            InfoItem item = mData.get(position);
-            if (holder instanceof ItemViewHolder) {
-                ((ItemViewHolder) holder).icon.setImageResource(item.getImageRes());
-                ((ItemViewHolder) holder).title.setText(item.getTitle());
-                switch (item) {
-                    case LoginDate:
-                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getLoginDateString());
-                        break;
-                    case Period:
-                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getServiceTime().getDisplayText());
-                        break;
-                    case LogoutDate:
-                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRealLogoutDateString());
-                        break;
-                    case Discount:
-                        ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
-                        break;
-                    case CounterTimer:
-                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRemainingDayWithString());
-                        break;
-                }
-                ((ItemViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
-                ((ItemViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                            mDragStartListener.onStartDrag(holder);
-                        }
-                        return false;
-                    }
-                });
-            } else if (holder instanceof ProgressbarViewHolder) {
-                ((ProgressbarViewHolder) holder).icon.setImageResource(item.getImageRes());
-                ((ProgressbarViewHolder) holder).title.setText(item.getTitle());
-                ((ProgressbarViewHolder) holder).progressBar.setProgress(mServiceUtil.getPercentage());
-                ((ProgressbarViewHolder) holder).percent.setText(String.format(Locale.TAIWAN, "%.1f%%", mServiceUtil.getPercentage()));
-                ((ProgressbarViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
-                ((ProgressbarViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                            mDragStartListener.onStartDrag(holder);
-                        }
-                        return false;
-                    }
-                });
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        if (item.getItemId() == R.id.action_restore_default_order) {
+            mData.clear();
+            SettingsUtils.setInfoItemIndexes(Ints.toArray(ContiguousSet.create(Range.closedOpen(0, InfoItem.values().length), DiscreteDomain.integers())));
+            int[] indexes = SettingsUtils.getInfoItemIndexes();
+            mInfoAdapter.notifyItemRangeRemoved(0, indexes.length);
+            for (int i = 0; i < indexes.length; i++) {
+                mData.add(InfoItem.values()[indexes[i]]);
             }
-
+            mInfoAdapter.notifyItemRangeInserted(0, indexes.length);
+        } else {
+            mode.finish();
         }
+        return false;
+    }
 
-        @Override
-        public int getItemCount() {
-            return mData.size();
-        }
-
-
-        @Override
-        public void onItemMove(int fromPosition, int toPosition) {
-            if (fromPosition < toPosition) {
-                for (int i = fromPosition; i < toPosition; i++) {
-                    Collections.swap(mData, i, i + 1);
-                }
-            } else {
-                for (int i = fromPosition; i > toPosition; i--) {
-                    Collections.swap(mData, i, i - 1);
-                }
-            }
-            notifyItemMoved(fromPosition, toPosition);
-            if (SettingsUtils.getInfoItemIndexes() == null) {
-                SettingsUtils.setInfoItemIndexes(Ints.toArray(ContiguousSet.create(Range.closedOpen(0, getItemCount()), DiscreteDomain.integers())));
-            }
-            SettingsUtils.setInfoItemIndexes(swap(SettingsUtils.getInfoItemIndexes(), fromPosition, toPosition));
-//            swap(SettingsUtils.getInfoItemIndexes(), fromPosition, toPosition);
-        }
-
-        /**
-         * Swaps {@code array[i]} with {@code array[j]}.
-         */
-        static int[] swap(int[] array, int i, int j) {
-            int temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-            return array;
-        }
-
-        @Override
-        public void onItemDismiss(int position) {
-
-        }
-
-        public void onReorderMode(boolean value) {
-            isReorder = value;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public void onItemSelected() {
-
-        }
-
-        @Override
-        public void onItemClear() {
-
-        }
-
-        public void setServiceUtil(ServiceUtil serviceUtil) {
-            mServiceUtil = serviceUtil;
-        }
-
-        class ItemViewHolder extends RecyclerView.ViewHolder {
-
-            @BindView(R.id.imageView)
-            ImageView icon;
-            @BindView(R.id.title)
-            TextView title;
-            @BindView(R.id.subtitle)
-            TextView subtitle;
-            @BindView(R.id.handle)
-            ImageView handleView;
-
-            public ItemViewHolder(View view) {
-                super(view);
-                ButterKnife.bind(this, view);
-
-            }
-        }
-
-        class ProgressbarViewHolder extends RecyclerView.ViewHolder {
-
-            @BindView(R.id.imageView)
-            ImageView icon;
-            @BindView(R.id.title)
-            TextView title;
-            @BindView(R.id.login_progressBar)
-            RoundCornerProgressBar progressBar;
-            @BindView(R.id.login_percent)
-            TextView percent;
-            @BindView(R.id.handle)
-            ImageView handleView;
-
-            public ProgressbarViewHolder(View view) {
-                super(view);
-                ButterKnife.bind(this, view);
-            }
-        }
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        mInfoAdapter.onReorderMode(false);
     }
 
     private void selectItem(int position) {
@@ -1129,7 +924,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.main_menu, menu);
 
 		/*
         final SharedPreferences settings = getSharedPreferences(PREF, 0);
@@ -1164,141 +959,80 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_share:
-                return true;
-            case R.id.share_photo:
-                CharSequence[] items = {"拍攝相片", "選擇相片"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setItems(items, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int item) {
-                        switch (item) {
-                            case 0:
-                                startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", true));
-                                break;
-                            case 1:
-                                startActivity(new Intent(MainActivity.this, ShareTo.class).putExtra("openCam", false));
-                                break;
+                PermissionListener listener = new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        try {
+                            // image naming and path  to include sd card  appending name you choose for file
+                            String mPath = Environment.getExternalStorageDirectory().toString() + "/PICTURES/Screenshots/" + DateTime.now().toString("yyyy-MM-dd_hh:mm:ss") + ".jpg";
+
+                            // create bitmap screen capture
+                            View v1 = getWindow().getDecorView().getRootView();
+                            v1.setDrawingCacheEnabled(true);
+                            Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+                            v1.setDrawingCacheEnabled(false);
+
+                            File imageFile = new File(mPath);
+
+                            FileOutputStream outputStream = new FileOutputStream(imageFile);
+                            int quality = 100;
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                            outputStream.flush();
+                            outputStream.close();
+
+                            Uri outputFileUri = Uri.fromFile(imageFile);
+                            Intent shareIntent = new Intent();
+                            shareIntent.setAction(Intent.ACTION_SEND);
+                            shareIntent.putExtra(Intent.EXTRA_STREAM, outputFileUri);
+                            shareIntent.setType("image/*");
+                            startActivity(Intent.createChooser(shareIntent, "將截圖分享到"));
+
+                        } catch (Throwable e) {
+                            // Several error may come out with file handling or OOM
+                            e.printStackTrace();
                         }
                     }
-                });
-                builder.create();
-                builder.show();
-                return true;
-            case R.id.share_board:
 
-			/*
-                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-
-	        	alert.setTitle("分享至Facebook");
-	        	alert.setMessage("計時看板截圖+你想說的話，一併發布至你的動態時報!");
-
-	        	// Set an EditText view to get user input
-	        	final EditText input = new EditText(MainActivity.this);
-	        	alert.setView(input);
-	        	input.setHint(USER_FB_NAME+"，快退了嗎？");
-
-	        	alert.setPositiveButton("送出", new DialogInterface.OnClickListener() {
-	        		public void onClick(DialogInterface dialog, int whichButton) {
-	        			if(NETWORK_CONNECTED){
-	        				closeSoftKeyboard(input.getWindowToken());
-	        				String value = input.getText().toString();
-	        				// Do something with value!
-	        				pDialog = new ProgressDialog(MainActivity.this);
-	        				pDialog.setMessage("張貼中");
-	        				pDialog.setIndeterminate(true);
-	        				pDialog.setCancelable(false);// 無法利用back鍵退出
-	        				pDialog.show();
-	        				publishStory(value, true);
-	        			}else{
-	        				Toast.makeText(MainActivity.this. getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
-	        			}
-	        		}
-	        	});
-
-	        	alert.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-	        	  public void onClick(DialogInterface dialog, int whichButton) {
-	        	    // Canceled.
-	        	  }
-	        	});
-
-	        	alert.show();
-			 */
-
-                screen = findViewById(R.id.logout_information);
-                assert screen != null;
-                screen.setDrawingCacheEnabled(true);
-                bmScreen = screen.getDrawingCache();
-                saveImage(bmScreen);
-                screen.setDrawingCacheEnabled(false);
-
-                File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                File image_file = new File(path + "/captured_screen.png");
-                Uri outputFileUri = Uri.fromFile(image_file);
-
-                Intent shareIntent = new Intent();
-                shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_STREAM, outputFileUri);
-                shareIntent.setType("image/jpeg");
-                startActivity(Intent.createChooser(shareIntent, "將截圖分享至..."));
-
-                return true;
-            case R.id.share_facebook:
-                LoginFacebook();
-                AlertDialog.Builder alert_non_pic = new AlertDialog.Builder(MainActivity.this);
-
-                alert_non_pic.setTitle("分享至Facebook");
-                alert_non_pic.setMessage("完全不PO圖，將計時看板的資訊轉為文字發布至動態時報");
-
-                // Set an EditText view to get user input
-                final EditText input_non_pic = new EditText(MainActivity.this);
-                alert_non_pic.setView(input_non_pic);
-                input_non_pic.setHint(USER_FB_NAME + "，快退了嗎？");
-
-                alert_non_pic.setPositiveButton("送出", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        if (NETWORK_CONNECTED) {
-                            if (checkPostPermissions()) {
-                                closeSoftKeyboard(input_non_pic.getWindowToken());
-                                String value = input_non_pic.getText().toString();
-                                // Do something with value!
-                                mProgressDialog = new ProgressDialog(MainActivity.this);
-                                mProgressDialog.setMessage("張貼中");
-                                mProgressDialog.setIndeterminate(true);
-                                mProgressDialog.setCancelable(false);// 無法利用back鍵退出
-                                mProgressDialog.show();
-                                try {
-                                    publishStory(value, false);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                Toast.makeText(MainActivity.this.getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
-                            }
-                        } else {
-                            Toast.makeText(MainActivity.this.getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
-                        }
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
 
                     }
-                });
 
-                alert_non_pic.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        // Canceled.
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
                     }
-                });
+                };
 
-                alert_non_pic.show();
+                ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+                PermissionListener snackbarPermissionListener =
+                        SnackbarOnDeniedPermissionListener.Builder
+                                .with(rootView, "需要存取空間的權限")
+                                .withOpenSettingsButton("設定")
+                                .build();
+
+                Dexter.checkPermission(new CompositePermissionListener(listener,snackbarPermissionListener), Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 return true;
-            //	        case R.id.share_facebook_request:
-            //	        	if(NETWORK_CONNECTED){
-            //	        		sendRequestDialog();
-            //	        	} else {
-            //	        		Toast.makeText(MainActivity.this. getApplicationContext(), "請確認網路狀態是否連線", Toast.LENGTH_LONG).show();
-            //	        	}
-            //
-            //	        	return true;
             case R.id.action_about:
-                DialogFragment dialogFragment = new AboutDialogFragment();
-                dialogFragment.show(getFragmentManager(), "aboutDialog");
+                StringBuilder content = new StringBuilder()
+                        .append("版本:" + BuildConfig.VERSION_NAME)
+                        .append("\r\n")
+                        .append(getString(R.string.about_text));
+
+                new MaterialDialog.Builder(this)
+                        .title(R.string.about_app_name)
+                        .content(content)
+                        .positiveText(R.string.ok)
+                        .neutralText("FB粉專")
+                        .neutralColorRes(R.color.com_facebook_blue)
+                        .onNeutral(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                OpenFacebookPage();
+                            }
+                        })
+                        .show();
+
                 return true;
             case R.id.action_changelog:
                 ChangeLog cl = new ChangeLog(this);
@@ -1308,10 +1042,22 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 startActivity(new Intent(this, WidgetColorPickerActivity.class));
                 return true;
             case R.id.action_reorder:
-                mInfoAdapter.onReorderMode(!mInfoAdapter.isReorder);
+                startSupportActionMode(this);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    protected void OpenFacebookPage(){
+        String facebookPageID = "431938510221759";
+        String facebookUrl = "https://www.facebook.com/" + facebookPageID;
+        String facebookUrlScheme = "fb://page/" + facebookPageID;
+
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(facebookUrlScheme)));
+        } catch (Exception e) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(facebookUrl)));
         }
     }
 
@@ -1347,6 +1093,240 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
 
     interface UpdateCallbacks {
         void onUpdate(float percent);
+    }
+
+    public static class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.BaseItemAnimateViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
+
+        private LayoutInflater mLayoutInflater;
+        private List<InfoItem> mData;
+        private OnStartDragListener mDragStartListener;
+        private Context mContext;
+        private ServiceUtil mServiceUtil;
+        private boolean isReorder;
+
+        // Allows to remember the last item shown on screen
+        private int lastPosition = -1;
+
+        public InfoAdapter(Context context, List<InfoItem> data, OnStartDragListener dragStartListener) {
+            mContext = context;
+            mLayoutInflater = LayoutInflater.from(context);
+            mData = data;
+            mDragStartListener = dragStartListener;
+        }
+
+        /**
+         * Swaps {@code array[i]} with {@code array[j]}.
+         */
+        static int[] swap(int[] array, int i, int j) {
+            int temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return mData.get(position) == InfoItem.CounterProgressbar ? 1 : 0;
+        }
+
+        @Override
+        public InfoAdapter.BaseItemAnimateViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            if (viewType == 0)
+                return new ItemViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list, parent, false));
+            else
+                return new ProgressbarViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list_2, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(final InfoAdapter.BaseItemAnimateViewHolder holder, final int position) {
+            InfoItem item = mData.get(position);
+            if (holder instanceof ItemViewHolder) {
+                ((ItemViewHolder) holder).icon.setImageResource(item.getImageRes());
+                ((ItemViewHolder) holder).title.setText(item.getTitle());
+                switch (item) {
+                    case LoginDate:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getLoginDateString());
+                        break;
+                    case Period:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getServiceTime().getDisplayText());
+                        break;
+                    case LogoutDate:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRealLogoutDateString());
+                        break;
+                    case Discount:
+                        ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
+                        break;
+                    case CounterTimer:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRemainingDayWithString());
+                        break;
+                }
+                ((ItemViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
+                ((ItemViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                            mDragStartListener.onStartDrag(holder);
+                        }
+                        return false;
+                    }
+                });
+            } else if (holder instanceof ProgressbarViewHolder) {
+                ((ProgressbarViewHolder) holder).icon.setImageResource(item.getImageRes());
+                ((ProgressbarViewHolder) holder).title.setText(item.getTitle());
+                ((ProgressbarViewHolder) holder).progressBar.setProgress(mServiceUtil.getPercentage());
+                ((ProgressbarViewHolder) holder).percent.setText(String.format(Locale.TAIWAN, "%.1f%%", mServiceUtil.getPercentage()));
+                ((ProgressbarViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
+                ((ProgressbarViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                            mDragStartListener.onStartDrag(holder);
+                        }
+                        return false;
+                    }
+                });
+            }
+
+            holder.handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
+            holder.handleView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                        mDragStartListener.onStartDrag(holder);
+                    }
+                    return false;
+                }
+            });
+//            setAnimation(holder.itemView, position);
+        }
+
+        /**
+         * Here is the key method to apply the animation
+         */
+        private void setAnimation(View viewToAnimate, int position) {
+            // If the bound view wasn't previously displayed on screen, it's animated
+            if (position > lastPosition) {
+                Animation animation = AnimationUtils.loadAnimation(mContext, android.R.anim.fade_in);
+                viewToAnimate.startAnimation(animation);
+                lastPosition = position;
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return mData.size();
+        }
+
+        @Override
+        public void onItemMove(int fromPosition, int toPosition) {
+            if (fromPosition < toPosition) {
+                for (int i = fromPosition; i < toPosition; i++) {
+                    Collections.swap(mData, i, i + 1);
+                }
+            } else {
+                for (int i = fromPosition; i > toPosition; i--) {
+                    Collections.swap(mData, i, i - 1);
+                }
+            }
+            notifyItemMoved(fromPosition, toPosition);
+            if (SettingsUtils.getInfoItemIndexes() == null) {
+                SettingsUtils.setInfoItemIndexes(Ints.toArray(ContiguousSet.create(Range.closedOpen(0, getItemCount()), DiscreteDomain.integers())));
+            }
+            SettingsUtils.setInfoItemIndexes(swap(SettingsUtils.getInfoItemIndexes(), fromPosition, toPosition));
+        }
+
+        @Override
+        public void onItemDismiss(int position) {
+
+        }
+
+        public void onReorderMode(boolean value) {
+            isReorder = value;
+//            notifyDataSetChanged();
+        }
+
+        @Override
+        public void onItemSelected() {
+
+        }
+
+        @Override
+        public void onItemClear() {
+
+        }
+
+        public void setServiceUtil(ServiceUtil serviceUtil) {
+            mServiceUtil = serviceUtil;
+        }
+
+        class BaseItemAnimateViewHolder extends AnimateViewHolder {
+
+            @BindView(R.id.handle)
+            ImageView handleView;
+
+            public BaseItemAnimateViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+            }
+
+            @Override
+            public void animateAddImpl(ViewPropertyAnimatorListener listener) {
+                ViewCompat.animate(itemView)
+                        .translationY(0)
+                        .alpha(1)
+                        .setDuration(300)
+                        .setListener(listener)
+                        .start();
+            }
+
+            @Override
+            public void preAnimateAddImpl() {
+                ViewCompat.setTranslationY(itemView, -itemView.getHeight() * 0.3f);
+                ViewCompat.setAlpha(itemView, 0);
+            }
+
+            @Override
+            public void animateRemoveImpl(ViewPropertyAnimatorListener listener) {
+                ViewCompat.animate(itemView)
+                        .translationY(-itemView.getHeight() * 0.3f)
+                        .alpha(0)
+                        .setDuration(300)
+                        .setListener(listener)
+                        .start();
+            }
+        }
+
+        class ItemViewHolder extends BaseItemAnimateViewHolder {
+
+            @BindView(R.id.imageView)
+            ImageView icon;
+            @BindView(R.id.title)
+            TextView title;
+            @BindView(R.id.subtitle)
+            TextView subtitle;
+
+            public ItemViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+            }
+        }
+
+        class ProgressbarViewHolder extends BaseItemAnimateViewHolder {
+
+            @BindView(R.id.imageView)
+            ImageView icon;
+            @BindView(R.id.title)
+            TextView title;
+            @BindView(R.id.login_progressBar)
+            RoundCornerProgressBar progressBar;
+            @BindView(R.id.login_percent)
+            TextView percent;
+
+            public ProgressbarViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+            }
+        }
     }
 
     private static class ViewPagerAdapter extends PagerAdapter {
@@ -1390,45 +1370,63 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         }
     }
 
-    public static class AboutDialogFragment extends DialogFragment {
+    public class InfoItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
-        PackageInfo pinfo = null;
+        private final ItemTouchHelperAdapter mAdapter;
+
+        public InfoItemTouchHelperCallback(ItemTouchHelperAdapter adapter) {
+            mAdapter = adapter;
+        }
 
         @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction
-            final TextView message = new TextView(getActivity());
-            StringBuffer buffer = new StringBuffer();
+        public boolean isLongPressDragEnabled() {
+            return false;
+        }
 
-            try {
-                pinfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
-            } catch (NameNotFoundException e) {
-                e.printStackTrace();
+        @Override
+        public boolean isItemViewSwipeEnabled() {
+            return false;
+        }
+
+        @Override
+        public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+            switch (actionState) {
+                case ItemTouchHelper.ACTION_STATE_DRAG:
+                    mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
+                    break;
+                case ItemTouchHelper.ACTION_STATE_IDLE:
+                    mRefreshInformationHandler.post(mRefreshInformationRunnable);
+                    if (viewHolder instanceof ItemTouchHelperViewHolder) {
+                        ItemTouchHelperViewHolder itemViewHolder = (ItemTouchHelperViewHolder) viewHolder;
+                        itemViewHolder.onItemSelected();
+                    }
+                    break;
             }
-            buffer.append("版本:" + pinfo.versionName);
-            buffer.append(getActivity().getText(R.string.about_text));
 
-            final SpannableString s = new SpannableString(buffer.toString());
-            Linkify.addLinks(s, Linkify.WEB_URLS);
-            message.setText(s);
-            message.setTextSize(16);
-            message.setPadding(10, 10, 10, 10);
-            message.setMovementMethod(LinkMovementMethod.getInstance());
+            super.onSelectedChanged(viewHolder, actionState);
+        }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(R.string.about_app_name)
-                    .setView(message)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // FIRE ZE MISSILES!
-                        }
-                    });
-            // Create the AlertDialog object and return it
-            return builder.create();
+        @Override
+        public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+            int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+            return makeMovementFlags(dragFlags, swipeFlags);
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+            return true;
+        }
+
+        @Override
+        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
         }
     }
 
-    public class DemoView extends LinearLayout implements UpdateCallbacks {
+    public static class DemoView extends LinearLayout {
         /**
          * TAG for logging
          */
@@ -1454,45 +1452,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
             ButterKnife.bind(this, view);
         }
 
-        @Override
-        public void onUpdate(float percent) {
-            String percentText = new DecimalFormat("#.##").format(percent);
-            if (percent >= 100.0f) {
-                mValueInfoTextview.setText("100%");
-            } else if (percent <= 0.0f) {
-                mValueInfoTextview.setText("0%");
-            } else {
-                mValueInfoTextview.setText(String.format("%s%%", percentText));
-            }
-        }
     }
-
-	/*private void sendRequestDialog() {
-        Bundle params = new Bundle();
-		params.putString("message", "期待我們早日回陽間生活吧!!");
-
-		WebDialog requestsDialog = (new WebDialog.RequestsDialogBuilder(MainActivity.this, Session.getActiveSession(), params)).setOnCompleteListener(new WebDialog.OnCompleteListener() {
-
-			@Override
-			public void onComplete(Bundle values, FacebookException error) {
-				if (error != null) {
-					if (error instanceof FacebookOperationCanceledException) {
-						Toast.makeText(MainActivity.this.getApplicationContext(), "取消邀請", Toast.LENGTH_SHORT).show();
-					} else {
-						Toast.makeText(MainActivity.this.getApplicationContext(), "網路錯誤", Toast.LENGTH_SHORT).show();
-					}
-				} else {
-					final String requestId = values.getString("request");
-					if (requestId != null) {
-						Toast.makeText(MainActivity.this.getApplicationContext(), "邀請已發送", Toast.LENGTH_SHORT).show();
-					} else {
-						Toast.makeText(MainActivity.this.getApplicationContext(), "取消邀請", Toast.LENGTH_SHORT).show();
-					}
-				}
-			}
-		}).setMessage("載入中...").build();
-		requestsDialog.show();
-	}*/
 
     private class LongOperation extends AsyncTask<Void, Void, Void> {
         @Override
@@ -1657,78 +1617,4 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         }
     }
 
-    public static class MilitaryInfo {
-
-        private long begin;
-        private int period;
-        private int discount;
-
-        public static MilitaryInfo parse(String jsonString) {
-            if (jsonString == null) {
-                return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), ServiceTime.ONE_YEAR, 30).getJsonString(), MilitaryInfo.class);
-            } else {
-                return new Gson().fromJson(jsonString, MilitaryInfo.class);
-            }
-        }
-
-        public MilitaryInfo(long loginMillis, ServiceTime serviceTime, int deleteDays) {
-            begin = loginMillis;
-            period = serviceTime.ordinal();
-            discount = deleteDays;
-        }
-
-        public String getJsonString() {
-            return new Gson().toJson(this);
-        }
-
-        public long getBegin() {
-            return begin;
-        }
-
-        public int getPeriod() {
-            return period;
-        }
-
-        public int getDiscount() {
-            return discount;
-        }
-
-        public MilitaryInfo setBegin(long begin) {
-            this.begin = begin;
-            return this;
-        }
-
-        public MilitaryInfo setPeriod(ServiceTime period) {
-            this.period = period.ordinal();
-            return this;
-        }
-
-        public MilitaryInfo setPeriod(int period) {
-            this.period = period;
-            return this;
-        }
-
-        public MilitaryInfo setDiscount(int discount) {
-            this.discount = discount;
-            return this;
-        }
-    }
-
-    private class DisplayData {
-
-        private final InfoItem mInfoItem;
-
-        public DisplayData(InfoItem infoItem) {
-            mInfoItem = infoItem;
-        }
-
-        public int getImageResource() {
-            return mInfoItem.getImageRes();
-        }
-
-        public String getTitle() {
-            return mInfoItem.getTitle();
-        }
-
-    }
 }
