@@ -36,7 +36,7 @@ public class ServiceUtil {
         return mServiceTime;
     }
 
-    public ServiceUtil(MainActivity.MilitaryInfo militaryInfo) {
+    public ServiceUtil(MilitaryInfo militaryInfo) {
         this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount());
     }
 

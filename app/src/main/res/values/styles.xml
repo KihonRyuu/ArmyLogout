@@ -5,6 +5,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionModeOverlay">true</item>
 
         <!--Pre-L-->
         <!--<item name="buttonStyle">@style/LoginButton</item>-->
@@ -20,6 +21,14 @@
         <item name="android:textColorSecondary">@color/secondary_text</item>
         <!--<item name="android:textColor">@color/md_white_1000</item>-->
         <!--<item name="android:buttonStyle">@style/ButtonText</item>-->
+
+        <!--<item name="android:actionModeBackground">?attr/colorPrimary</item>
+        <item name="android:actionModeStyle">@style/ActionMode</item>-->
+    </style>
+
+    <style name="ActionMode">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:height">?attr/actionBarSize</item>
     </style>
 
     <style name="ButtonText" parent="Widget.AppCompat.Button">

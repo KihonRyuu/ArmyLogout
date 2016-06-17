@@ -34,11 +34,9 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.0.1'
     apt 'com.jakewharton:butterknife-compiler:8.0.1'
 
-    compile('com.github.afollestad.material-dialogs:core:0.8.5.8@aar') {
-        transitive = true
-    }
-    compile('com.github.afollestad.material-dialogs:commons:0.8.5.8@aar') {
-        transitive = true
+    compile 'com.afollestad.material-dialogs:core:0.8.5.9'
+    compile ('com.afollestad.material-dialogs:commons:0.8.5.9'){
+        exclude module: 'core'
     }
 
     compile 'biz.kasual:materialnumberpicker:1.2.1'
@@ -55,5 +53,8 @@ dependencies {
     compile 'joda-time:joda-time:2.9.4'
 
     compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
+    compile 'jp.wasabeef:recyclerview-animators:2.2.3'
+    compile 'com.karumi:dexter:2.2.2'
+
 
 }
