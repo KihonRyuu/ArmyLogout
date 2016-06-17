@@ -3,10 +3,12 @@ package com.kihon.android.apps.army_logout.settings;
 import com.google.gson.Gson;
 
 import com.kihon.android.apps.army_logout.AppApplication;
+import com.kihon.android.apps.army_logout.R;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -31,6 +33,7 @@ public class SettingsUtils {
     private static final String PREF_LOGIN_DATE_MILLIS = "pref_login_date_millis";
     private static final String PREF_MILITARY_INFO = "pref_military_info";
     private static final String PREF_INFO_ITEM_INDEXES = "pref_info_item_indexes";
+    private static final String PREF_PROGRESSBAR_COLOR = "pref_progressbar_color";
 
     public static void setDeviceId(String deviceId) {
         sSharedPreferences.edit().putString(PREF_DEVICE_ID, deviceId).apply();
@@ -82,5 +85,14 @@ public class SettingsUtils {
 
     public static void setInfoItemIndexes(int[] indexes) {
         sSharedPreferences.edit().putString(PREF_INFO_ITEM_INDEXES, Arrays.toString(indexes)).apply();
+    }
+
+    public static void setProgressBarColor(int selectedColor) {
+        sSharedPreferences.edit().putInt(PREF_PROGRESSBAR_COLOR, selectedColor).apply();
+
+    }
+
+    public static int getProgressBarColor() {
+        return sSharedPreferences.getInt(PREF_PROGRESSBAR_COLOR, ContextCompat.getColor(AppApplication.getInstance(), R.color.colorPrimary));
     }
 }

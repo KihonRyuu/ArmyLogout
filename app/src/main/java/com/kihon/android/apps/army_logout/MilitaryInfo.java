@@ -12,19 +12,24 @@ public class MilitaryInfo {
     private long begin;
     private int period;
     private int discount;
+    private int periodType;
+
+    static final int DayTime = 0;
+    static final int YearMonthDayTime = 1;
 
     public static MilitaryInfo parse(String jsonString) {
         if (jsonString == null) {
-            return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), MainActivity.ServiceTime.ONE_YEAR, 30).getJsonString(), MilitaryInfo.class);
+            return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), MainActivity.ServiceTime.ONE_YEAR, 30, DayTime).getJsonString(), MilitaryInfo.class);
         } else {
             return new Gson().fromJson(jsonString, MilitaryInfo.class);
         }
     }
 
-    public MilitaryInfo(long loginMillis, MainActivity.ServiceTime serviceTime, int deleteDays) {
+    public MilitaryInfo(long loginMillis, MainActivity.ServiceTime serviceTime, int deleteDays, int periodType) {
         begin = loginMillis;
         period = serviceTime.ordinal();
         discount = deleteDays;
+        this.periodType = periodType;
     }
 
     public String getJsonString() {
@@ -37,6 +42,10 @@ public class MilitaryInfo {
 
     public int getPeriod() {
         return period;
+    }
+
+    public int getPeriodType() {
+        return periodType;
     }
 
     public int getDiscount() {
@@ -61,5 +70,12 @@ public class MilitaryInfo {
     public MilitaryInfo setDiscount(int discount) {
         this.discount = discount;
         return this;
+    }
+
+    public void switchPeriodType() {
+        if (periodType == DayTime)
+            periodType = YearMonthDayTime;
+        else
+            periodType = DayTime;
     }
 }

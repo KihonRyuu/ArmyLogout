@@ -11,6 +11,10 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * Created by kihon on 2016/06/08.
  */
@@ -19,35 +23,42 @@ public class ServiceUtil {
     private final long mStartTime;
     private final MainActivity.ServiceTime mServiceTime;
     private final DateTime mStartDateTime;
+    private final int mCounterTextPeriodType;
     private int mDiscountDays;
     private DateTime mStandLogoutDateTime;
     private DateTime mRealLogoutDateTime;
     private Period mPeriod;
 
-    public ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays) {
+    public ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays, int periodType) {
         mStartTime = startTimeInMillis;
         mServiceTime = serviceTime;
         mDiscountDays = discountDays;
+        mCounterTextPeriodType = periodType;
         mStartDateTime = new DateTime(startTimeInMillis);
         setEndTime();
+    }
+
+    public ServiceUtil(MilitaryInfo militaryInfo) {
+        this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount(), militaryInfo.getPeriodType());
     }
 
     public MainActivity.ServiceTime getServiceTime() {
         return mServiceTime;
     }
 
-    public ServiceUtil(MilitaryInfo militaryInfo) {
-        this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount());
-    }
-
     public String getLoginDateString() {
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy年M月d日");
-        return mStartDateTime.toString(fmt);
+        return mStartDateTime.toString(fmt) + "(" + getDayOfWeekShortest(mStartDateTime.getMillis()) + ")";
+    }
+
+    private String getDayOfWeekShortest(long millis) {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEEE", Locale.TAIWAN);
+        return sdf.format(new Date(millis));
     }
 
     public String getRealLogoutDateString() {
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy年M月d日");
-        return mRealLogoutDateTime.toString(fmt);
+        return mRealLogoutDateTime.toString(fmt) + "(" + getDayOfWeekShortest(mRealLogoutDateTime.getMillis()) + ")";
     }
 
     private void setEndTime() {
@@ -98,22 +109,34 @@ public class ServiceUtil {
         return String.valueOf(Days.daysBetween(mStartDateTime.toInstant(), DateTime.now().toInstant()).getDays());
     }
 
-    public Period getRemainingPeriod() {
-        return mPeriod = new Period(DateTime.now(), mRealLogoutDateTime, PeriodType.dayTime());
+    public Period getRemainingPeriod(PeriodType periodType) {
+        return mPeriod = new Period(DateTime.now(), mRealLogoutDateTime, periodType);
     }
 
     public String getRemainingDayWithString() {
         PeriodFormatter formatter = new PeriodFormatterBuilder()
+                .appendYears().appendSuffix("年")
+                .appendMonths().appendSuffix("個月")
                 .printZeroAlways().appendDays().appendSuffix("天").appendSeparator(" ")
                 .printZeroAlways().minimumPrintedDigits(2).appendHours().appendSeparator(":")
                 .printZeroAlways().minimumPrintedDigits(2).appendMinutes().appendSeparator(":")
                 .printZeroAlways().minimumPrintedDigits(2).appendSeconds()
                 .toFormatter();
-        return getRemainingDayWithString(formatter);
+        return getRemainingDayWithString(formatter, getCounterTextPeriodType());
     }
 
-    public String getRemainingDayWithString(PeriodFormatter formatter) {
-        return formatter.print(isLoggedIn() ? getRemainingPeriod() : new Period(DateTime.now(), mStartDateTime, PeriodType.dayTime()));
+    private PeriodType getCounterTextPeriodType() {
+        return mCounterTextPeriodType == MilitaryInfo.DayTime ? PeriodType.dayTime() : PeriodType.yearMonthDayTime();
+    }
+
+    private String getRemainingDayWithString(PeriodFormatter formatter, PeriodType periodType) {
+        if (isLoggedIn())
+            if (getRemainingPeriod(periodType).getMillis() < 0)
+                return "學長(`・ω・́)ゝ 你已經成功返陽了!";
+            else
+                return formatter.print(getRemainingPeriod(periodType));
+        else
+            return formatter.print(new Period(DateTime.now(), mStartDateTime, PeriodType.dayTime()));
     }
 
     private int getDiscount() {
@@ -124,25 +147,26 @@ public class ServiceUtil {
         long pass = new Period(mStartDateTime, DateTime.now(), PeriodType.dayTime()).toPeriod().toStandardDuration().getMillis();
         long total = new Period(mStartDateTime, mRealLogoutDateTime, PeriodType.dayTime()).toPeriod().toStandardDuration().getMillis();
         float percent = pass * 100.0f / total;
-        return percent >= 100.0f ? 100.0f : percent;
+        Range<Float> floatRange = Range.open(0.0f, 100.0f);
+        return floatRange.contains(percent) ? percent : (percent < 0.0f ? 0.0f : 100.0f);
     }
 
     public String getUntilHundredDaysRemainingDaysWithString() {
         PeriodFormatter formatter = new PeriodFormatterBuilder()
                 .appendDays().appendSuffix("天").toFormatter();
-        return formatter.print(getRemainingPeriod().minusDays(30).toPeriod());
+        return formatter.print(getRemainingPeriod(PeriodType.dayTime()).minusDays(30).toPeriod());
     }
 
     public boolean isHundredDays() {
-        return Range.open(30, 100).contains(getRemainingPeriod().getDays());
+        return Range.open(30, 100).contains(getRemainingPeriod(PeriodType.dayTime()).getDays());
+    }
+
+    public int getDiscountDays() {
+        return mDiscountDays;
     }
 
     public void setDiscountDays(int value) {
         mDiscountDays = value;
         setEndTime();
-    }
-
-    public int getDiscountDays() {
-        return mDiscountDays;
     }
 }

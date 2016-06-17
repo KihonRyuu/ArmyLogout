@@ -7,15 +7,9 @@ import com.google.common.primitives.Ints;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.color.ColorChooserDialog;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
-import com.facebook.FacebookRequestError;
-import com.facebook.HttpMethod;
-import com.facebook.Request;
-import com.facebook.RequestAsyncTask;
-import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.SessionState;
-import com.facebook.model.GraphUser;
 import com.github.OrangeGangsters.circularbarpager.library.CircularBarPager;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
@@ -31,32 +25,27 @@ import com.viewpagerindicator.CirclePageIndicator;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MotionEventCompat;
@@ -85,6 +74,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -96,20 +86,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -123,7 +107,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.holder.AnimateViewHolder;
 
-public class MainActivity extends AppCompatActivity implements OnStartDragListener, ActionMode.Callback {
+public class MainActivity extends AppCompatActivity implements OnStartDragListener, ActionMode.Callback,ColorChooserDialog.ColorCallback {
 
     public static final String PREF = "ARMY_LOGOUT_PREF";
     public static final String PREF_LOGINDATE = "ARMY_LOGOUT_LoginDate";
@@ -160,39 +144,27 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     protected static int sLogoutYear = 0;
     protected static int sLogoutDay = 0;
     static boolean login_yet = false;
-    private static Calendar mLogoutDateCalendar = Calendar.getInstance();
-    private static String sLoginDate = null;
     //	private static String LOGOUT_TIME = null;
-    private static String sDeleteDays = null;
     private static String USER_FB_NAME = "弟兄";
     private static int sIntServiceRange = 0;
-    private static boolean service_year = true;
     /**
      * 自訂役期
      */
 
     private static String[] sCustomServiceRangeArray = new String[]{"4", "0", "0"};
-    protected String mFacebookCountTimeText;
+
     @BindView(R.id.until_logout_days_text)
     TextView mTvUntilLogoutDays;
     @BindView(R.id.until_logout_title_text)
     TextView mTvUntilLogoutTitle;
-    //	public static int LOGIN_PASS_DAY = 0;
     @BindView(R.id.welcome_user_text)
     TextView mTvUsername;
     @BindView(R.id.welcome_user_text2)
     TextView mTvStatus;
     @BindView(R.id.login_date_btn)
     Button mBtnLoginDate;
-    /*    @BindView(R.id.login_progressBar)
-        ProgressBar mProgressBarLogin;*/
     @BindView(R.id.progressBar_connect_facebook)
     ProgressBar mProgressBarFbConnect;
-    /*    @BindView(R.id.login_Percent)
-        TextView mTvLoginPercent;*/
-    //    private static int sWidgetColors = -1;
-//	@BindView(R.id.delete_day_edittext)
-//	EditText mEtDeleteDay;
     @BindView(R.id.delete_day_button)
     Button mDeleteDayButton;
     @BindView(R.id.service_day_spinner)
@@ -205,22 +177,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     TextView mBreakMonthTextView;
     @BindView(R.id.circularBarPager)
     CircularBarPager mCircularBarPager;
-    /**
-     *
-     */
-
-    Bitmap bmScreen;
-    RelativeLayout mLayout;
-    Dialog screenDialog;
-    ImageView bmImage;
-    Button btnScreenDialog_OK;
-    // TextView TextOut;
-
-    View screen;
-    EditText EditTextIn;
-    /**
-     *
-     */
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
     @BindView(R.id.circleView)
@@ -229,36 +185,10 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
     RecyclerView mRecyclerView;
     @BindView(R.id.menu_settings)
     FloatingActionButton mFab;
-    private Button shareButton;
-    private boolean pendingPublishReauthorization = false;
     private Handler mRefreshInformationHandler = new Handler();
-    private ProgressDialog mProgressDialog;
-    private SimpleDateFormat mFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", new Locale("TAIWAN"));
-    private byte[] photo_data = null;
-    /**
-     * DrawerLayout
-     *
-     * @date 2013-11-19
-     * @author kihon
-     */
-
-    private ViewGroup mContainerView;
-    private Handler mCheckNetWorkStatusHandler = new Handler();
-    private boolean mBeforeHoneycomb = true;
     private boolean mCustomServiceRange = false;
     private ArrayList<String> mServiceRangeArrayList = new ArrayList<>();
-    private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
-    private String mCustomServiceRangeText = null;
     private ArrayAdapter<String> mServiceDayAdapter;
-    //    private int mDeleteDay;
-    private String mCountTimeText;
-    private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-            NETWORK_CONNECTED = checkNetwork();
-        }
-    };
     private ServiceUtil mServiceUtil;
     private DemoView[] mDemoViews;
     private InfoAdapter mInfoAdapter;
@@ -282,41 +212,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 mTvStatus.setText("準備好踏入陰間了嗎？");
             }
 
-            for (int i = 0; i < mDemoViews.length; i++) {
-                TextView valueInfoTextView = mDemoViews[i].mValueInfoTextview;
-                TextView userBottomTextView = mDemoViews[i].mUserBottomTextview;
-                switch (i) {
-                    case 0:
-                        userBottomTextView.setVisibility(View.GONE);
-                        String valueInfoText = new DecimalFormat("#.##").format(mServiceUtil.getPercentage());
-                        if (mServiceUtil.getPercentage() >= 100.0f) {
-                            valueInfoTextView.setText("100%");
-                        } else if (mServiceUtil.getPercentage() <= 0.0f) {
-                            valueInfoTextView.setText("0%");
-                        } else {
-                            valueInfoTextView.setText(String.format("%s%%", valueInfoText));
-                        }
-                        break;
-                    case 1:
-                        userBottomTextView.setVisibility(View.GONE);
-                        PeriodFormatter formatter = new PeriodFormatterBuilder()
-                                .printZeroAlways().appendDays().appendSuffix("天")
-                                .toFormatter();
-                        valueInfoTextView.setText(mServiceUtil.getRemainingDayWithString(formatter));
-                        formatter = new PeriodFormatterBuilder()
-                                .printZeroAlways().minimumPrintedDigits(2).appendHours().appendSeparator(":")
-                                .printZeroAlways().minimumPrintedDigits(2).appendMinutes().appendSeparator(":")
-                                .printZeroAlways().minimumPrintedDigits(2).appendSeconds()
-                                .toFormatter();
-                        userBottomTextView.setText(mServiceUtil.getRemainingDayWithString(formatter));
-                        break;
-                }
-            }
-
-            /*for (UpdateCallbacks callbacks : mDemoViews) {
-                callbacks.onUpdate(mServiceUtil.getPercentage());
-            }*/
-
             mTvUntilLogoutDays.setText(mServiceUtil.getRemainingDayWithString());
 //            mProgressBarLogin.setProgress((int) mServiceUtil.getPercentage());
 
@@ -339,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 ItemTouchHelper.Callback callback = new InfoItemTouchHelperCallback(mInfoAdapter);
                 mTouchHelper = new ItemTouchHelper(callback);
                 mTouchHelper.attachToRecyclerView(mRecyclerView);
-                mRecyclerView.getItemAnimator().setAddDuration(5000);
             } else {
                 mData.clear();
                 mInfoAdapter.notifyDataSetChanged();
@@ -384,7 +278,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 loginDatePickerDialog.show();
                 break;
             case Period:
-//                Context wrapper = new ContextThemeWrapper(v.getContext(), v.getContext().getTheme());
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 for (int i = 0; i < ServiceTime.values().length; i++) {
                     popupMenu.getMenu().add(0, i, 0, ServiceTime.values()[i].getDisplayText());
@@ -392,15 +285,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                       /* if (item.getItemId() == ServiceTime.values().length - 1) {
-                            mCustomRangeDialog.show(getFragmentManager(), "custom_range_dialog");
-                        } else {
-                            sIntServiceRange = item.getItemId();
-                            loadUserData();
-                        }*/
                         mMilitaryInfo.setPeriod(item.getItemId());
-//                        sIntServiceRange = item.getItemId();
-//                        loadUserData();
                         return false;
                     }
                 });
@@ -441,8 +326,15 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                         .show();
                 break;
             case CounterTimer:
+                mMilitaryInfo.switchPeriodType();
                 break;
             case CounterProgressbar:
+                new ColorChooserDialog.Builder(this, R.string.color_palette)
+//                        .titleSub(R.string.colors)  // title of dialog when viewing shades of a color
+                        .accentMode(true)  // when true, will display accent palette instead of primary palette
+//                        .preselect(accent ? accentPreselect : primaryPreselect)  // optionally preselects a color
+                        .dynamicButtonColor(true)  // defaults to true, false will disable changing action buttons' color to currently selected color
+                        .show();
                 break;
             default:
                 break;
@@ -486,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                     break;
             }
 
-            mMilitaryInfo = new MilitaryInfo(loginMillis, serviceTime, deleteDays);
+            mMilitaryInfo = new MilitaryInfo(loginMillis, serviceTime, deleteDays, MilitaryInfo.DayTime);
             SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
             getSharedPreferences(PREF, Context.MODE_PRIVATE).edit().clear().apply();
         } else {
@@ -495,36 +387,11 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
 
 
         setListeners();
-        initCircleView();
+//        initCircleView();
 
         ChangeLog cl = new ChangeLog(this);
         if (cl.firstRun())
             cl.getLogDialog().show();
-
-        mViewPager = mCircularBarPager.getViewPager();
-        mViewPager.setClipToPadding(true);
-        mCirclePageIndicator = mCircularBarPager.getCirclePageIndicator();
-
-        mDemoViews = new DemoView[2];
-        mDemoViews[0] = new DemoView(this);
-        mDemoViews[1] = new DemoView(this);
-
-        ViewPagerAdapter adapter = new ViewPagerAdapter(this, mDemoViews);
-        mViewPager.setAdapter(adapter);
-        mCirclePageIndicator.setViewPager(mViewPager);
-        mCirclePageIndicator.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                if (mCircularBarPager != null && mCircularBarPager.getCircularBar() != null) {
-                    selectItem(position);
-                }
-            }
-        });
-
-        mCirclePageIndicator.setFillColor(0xFF888888);
-//        mCirclePageIndicator.setStrokeColor(0xFF000000);
-//        mCirclePageIndicator.setStrokeWidth();
-//        mCirclePageIndicator.setRadius();
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setNestedScrollingEnabled(false);
@@ -703,221 +570,18 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         });
     }
 
-    private boolean checkNetwork() {
-        try {
-            ConnectivityManager cm = (ConnectivityManager) getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-            boolean isConnected = activeNetwork.isConnectedOrConnecting();
-            // LoginFacebook();
-            mProgressBarFbConnect.setVisibility(View.GONE);
-            return isConnected;
-        } catch (NullPointerException e) {
-            mProgressBarFbConnect.setVisibility(View.VISIBLE);
-            mTvUsername.setText("請確認網路狀況是否正常");
-            return false;
-        } finally {
-            mCheckNetWorkStatusHandler.postDelayed(mCheckNetWorkStatusRunnable, 1000);
-        }
-
-    }
-
-    private void LoginFacebook() {
-
-        Session.openActiveSession(this, true, new Session.StatusCallback() {
-            @Override
-            public void call(final Session session, SessionState state, Exception exception) {
-                if (session.isOpened()) {
-
-                    if (session != null) {
-                        // Check for publish permissions
-                        List<String> permissions = session.getPermissions();
-                        if (!isSubsetOf(PERMISSIONS, permissions)) {
-                            pendingPublishReauthorization = true;
-                            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(MainActivity.this, PERMISSIONS);
-                            session.requestNewPublishPermissions(newPermissionsRequest);
-                        }
-
-                        // Make an API call to get user data and define a
-                        // new callback to handle the response.
-                        Request request = Request.newMeRequest(session, new Request.GraphUserCallback() {
-                            @Override
-                            public void onCompleted(GraphUser user, Response response) {
-                                // If the response is successful
-                                if (session == Session.getActiveSession()) {
-                                    if (user != null) {
-                                        // Set the id for the ProfilePictureView
-                                        // view that in turn displays the profile picture.
-                                        // Set the Textview's text to the user's name.
-                                        mTvUsername.setText("Hi~ " + user.getName() + "!");
-                                        mProgressBarFbConnect.setVisibility(View.GONE);
-                                        USER_FB_NAME = user.getName();
-                                    }
-                                }
-                                if (response.getError() != null) {
-                                    // Handle errors, will do so later.
-                                }
-                            }
-                        });
-                        request.executeAsync();
-                        return;
-                    }
-                }
-            }
-        });
-
-//	    final Session session = Session.getActiveSession();
-
-    }
-
-    private boolean checkPostPermissions() {
-        Session session = Session.getActiveSession();
-        try {
-            if (session != null) {
-
-                // Check for publish permissions
-                List<String> permissions = session.getPermissions();
-                if (!isSubsetOf(PERMISSIONS, permissions)) {
-                    pendingPublishReauthorization = true;
-                    Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-                    session.requestNewPublishPermissions(newPermissionsRequest);
-                    Log.d(TAG, "跑了");
-                    return false;
-                }
-                return true;
-            }
-        } catch (UnsupportedOperationException e) {
-            Toast.makeText(MainActivity.this.getApplicationContext(), "您必須授予程式貼文的權限後，才可張貼至動態時報", Toast.LENGTH_LONG).show();
-        }
-        return false;
-    }
-
-    protected void saveImage(Bitmap bmScreen2) {
-
-        // String fname = "Upload.png";
-        File path = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File saved_image_file = new File(path + "/captured_screen.png");
-        if (saved_image_file.exists())
-            saved_image_file.delete();
-        try {
-            //resize
-
-            FileOutputStream out = new FileOutputStream(saved_image_file);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, out);
-            bmScreen2.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            photo_data = baos.toByteArray();
-            out.flush();
-            out.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-//		setCountDownTimer(LOGOUT_TIME);
         mRefreshInformationHandler.post(mRefreshInformationRunnable);
-        mCheckNetWorkStatusHandler.post(mCheckNetWorkStatusRunnable);
-        mCircularBarPager.getCircularBar().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                selectItem(0);
-            }
-        }, 550);
-        new LongOperation().execute();
+//        new LongOperation().execute();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-//		mCountDownTimer.cancel();
         mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
-        mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
-
         SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
-//        savePrefs();
-    }
-
-    private void publishStory(String post_message, boolean takepic) throws Exception {
-        String graphPath = "me/feed";
-        Session session = Session.getActiveSession();
-
-        if (session != null) {
-
-            // Check for publish permissions
-            List<String> permissions = session.getPermissions();
-            if (!isSubsetOf(PERMISSIONS, permissions)) {
-                pendingPublishReauthorization = true;
-                Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
-                session.requestNewPublishPermissions(newPermissionsRequest);
-                Log.d(TAG, "跑了");
-                return;
-            }
-
-            Bundle postParams = new Bundle();
-            postParams.putString("message", post_message);
-
-            /**
-             * photo cap.
-             */
-
-            if (takepic) {
-                screen = (View) findViewById(R.id.logout_information);
-                screen.setDrawingCacheEnabled(true);
-                bmScreen = screen.getDrawingCache();
-                saveImage(bmScreen);
-                screen.setDrawingCacheEnabled(false);
-                postParams.putByteArray("picture", photo_data);
-                graphPath = "me/photos";
-            } else {
-                postParams.putString("name", "放假時間是很珍貴的!");
-                postParams.putString("caption", "請愛護服役人員");
-//                postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
-                postParams.putString("link", "https://play.google.com/store/apps/details?id=com.kihon.android.apps.army_logout");
-                postParams.putString("picture", "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc1/s160x160/481191_436050169810593_1810179700_a.png");
-            }
-
-            Log.d(TAG, post_message);
-
-            Request.Callback callback = new Request.Callback() {
-                public void onCompleted(Response response) {
-                    JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-                    String postId = null;
-                    try {
-                        postId = graphResponse.getString("id");
-                    } catch (JSONException e) {
-                        Log.i(TAG, "JSON error " + e.getMessage());
-                    }
-                    FacebookRequestError error = response.getError();
-                    if (error != null) {
-                        Toast.makeText(MainActivity.this.getApplicationContext(), error.getErrorMessage(), Toast.LENGTH_SHORT).show();
-                    } else {
-//	                        Toast.makeText(MainActivity.this.getApplicationContext(), postId, Toast.LENGTH_LONG).show();
-                        Toast.makeText(MainActivity.this.getApplicationContext(), "張貼成功!", Toast.LENGTH_LONG).show();
-                        Log.d(TAG, postId);
-                    }
-                    mProgressDialog.dismiss();
-                }
-            };
-
-            Request request = new Request(session, graphPath, postParams, HttpMethod.POST, callback);
-
-            RequestAsyncTask task = new RequestAsyncTask(request);
-            task.execute();
-        }
-
-    }
-
-    private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
-        for (String string : subset) {
-            if (!superset.contains(string)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
@@ -1011,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                                 .withOpenSettingsButton("設定")
                                 .build();
 
-                Dexter.checkPermission(new CompositePermissionListener(listener,snackbarPermissionListener), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                Dexter.checkPermission(new CompositePermissionListener(listener, snackbarPermissionListener), Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 return true;
             case R.id.action_about:
                 StringBuilder content = new StringBuilder()
@@ -1049,7 +713,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         }
     }
 
-    protected void OpenFacebookPage(){
+    protected void OpenFacebookPage() {
         String facebookPageID = "431938510221759";
         String facebookUrl = "https://www.facebook.com/" + facebookPageID;
         String facebookUrlScheme = "fb://page/" + facebookPageID;
@@ -1075,6 +739,11 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         return spinnerText.toString();
     }
 
+    @Override
+    public void onColorSelection(@NonNull ColorChooserDialog dialog, @ColorInt int selectedColor) {
+        SettingsUtils.setProgressBarColor(selectedColor);
+    }
+
     public enum ServiceTime {
         ONE_YEAR("一年"), FOUR_YEARS("四年"), ONE_YEAR_FIFTH_DAYS("一年十五天"), FOUR_MONTHS("四個月"),
         FOUR_MONTHS_FIVE_DAYS("四個月五天"), SIX_MONTHS("六個月"), THREE_YEARS("三年"), ONE_YEAR_SIX_MONTHS("一年六個月"), TEN_MONTHS("十個月");
@@ -1089,10 +758,6 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
         public String getDisplayText() {
             return mDisplayText;
         }
-    }
-
-    interface UpdateCallbacks {
-        void onUpdate(float percent);
     }
 
     public static class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.BaseItemAnimateViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
@@ -1157,6 +822,7 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
                         ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
                         break;
                     case CounterTimer:
+                        ((ItemViewHolder) holder).title.setText(mServiceUtil.isLoggedIn() ? item.getTitle() : item.getTitle().replace("退", "入"));
                         ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRemainingDayWithString());
                         break;
                 }
@@ -1173,7 +839,12 @@ public class MainActivity extends AppCompatActivity implements OnStartDragListen
             } else if (holder instanceof ProgressbarViewHolder) {
                 ((ProgressbarViewHolder) holder).icon.setImageResource(item.getImageRes());
                 ((ProgressbarViewHolder) holder).title.setText(item.getTitle());
-                ((ProgressbarViewHolder) holder).progressBar.setProgress(mServiceUtil.getPercentage());
+                ((ProgressbarViewHolder) holder).progressBar.setProgressColor(SettingsUtils.getProgressBarColor());
+                ObjectAnimator animation = ObjectAnimator.ofFloat(((ProgressbarViewHolder) holder).progressBar, "progress", mServiceUtil.getPercentage());
+                animation.setDuration(300);
+                animation.setInterpolator(new DecelerateInterpolator());
+                animation.start();
+//                ((ProgressbarViewHolder) holder).progressBar.setProgress(mServiceUtil.getPercentage());
                 ((ProgressbarViewHolder) holder).percent.setText(String.format(Locale.TAIWAN, "%.1f%%", mServiceUtil.getPercentage()));
                 ((ProgressbarViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
                 ((ProgressbarViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {

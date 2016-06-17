@@ -1,2 +1,201 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" />
+<items version="2" >
+
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.github.orangegangsters/library/1.3.4/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="5737f15b83c5903acb17109d54236b9e480b7f5f">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.github.orangegangsters-library-1.3.4_ef94f3c224f7d895aa638d0406607fa06451fb02.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.6.2/f1bc476cc167b18e66c297df599b2377131a8947/gson-2.6.2.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="f1bc476cc167b18e66c297df599b2377131a8947">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/gson-2.6.2_3ab0ef7a94d1b4d9b1e09d413fdf3c70af104763.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-animated-vector-drawable-23.4.0_02a8ae7990ff285f5df39f968cc3daa029bb0121.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.afollestad.material-dialogs/commons/0.8.5.9/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="1e86bc736897abf1ec563cfb29267c7150db3a2e">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.afollestad.material-dialogs-commons-0.8.5.9_5d3883ac7f4d953881360d9773c5fb29488c2f19.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-support-vector-drawable-23.4.0_4512e90a5282f9cb18e1d646a0e138436c66c70d.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.jakewharton/butterknife/8.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="74ca46e7da11e3d065eb64cdbe6568a7ed74c211">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.jakewharton-butterknife-8.0.1_64175a70d7d9f73f58c082fdbb9d231be7ea9a3b.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.afollestad.material-dialogs/core/0.8.5.9/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="04d4337de6ccd7e57aec621f41ee747976fca7d8">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.afollestad.material-dialogs-core-0.8.5.9_da45cb42ddc67bc3945a512d06c5f3de12e20a15.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/me.zhanghai.android.materialprogressbar/library/1.1.5/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="4a9f97c742d058ca55948643c06f447895a9af76">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/me.zhanghai.android.materialprogressbar-library-1.1.5_362c0194ecd6839b785b2e194d0cbeea22d45c40.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/19.0/6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9/guava-19.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/guava-19.0_38b5d22dc26515e8f6a146bede8134f6ac52da32.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-support-v4-23.4.0_aaba2bdad1ebf5993dfc595df589b284ddff6380.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/libs/internal_impl-23.4.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="ea3c07504d2c8f4b13aa17c45c1b68ed9c1c3674">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/internal_impl-23.4.0_231725b0003bc4f0affd6580a4ae8896c863ea43.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/jp.wasabeef/recyclerview-animators/2.2.3/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="8e325e9ba5c23d635d0cfaa76c349fca83101f8a">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/jp.wasabeef-recyclerview-animators-2.2.3_77cf2de2ff21b26503ceafca727c7bfb892e7df4.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.github.JakeWharton/ViewPagerIndicator/2.4.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="14889e022db94047ceadff1cf5e7984139a4eb8e">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.github.JakeWharton-ViewPagerIndicator-2.4.1_d441faf518f5668616601c93d3f6f325c0e3365e.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.akexorcist/RoundCornerProgressBar/2.0.3/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="88c6386ad8356b89487b43bcaae4827b1abe999c">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.akexorcist-RoundCornerProgressBar-2.0.3_aac52d48e85edd24c1ff3391311bbce0c5b015c3.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.volley/volley/1.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="2cd4b982617e544728de0782d718a58ce1b06e3f">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.volley-volley-1.0.0_79835481f81c2c2eb6ec651f52e523c56647e341.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife-annotations/8.0.1/345b89f45d02d8b09400b472fab7b7e38f4ede1f/butterknife-annotations-8.0.1.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="345b89f45d02d8b09400b472fab7b7e38f4ede1f">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/butterknife-annotations-8.0.1_036c1438f2c0a651016c5ce8b5a5846035efa020.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="ec75036c3c52e451d0cde50a5aedaf5fd32354a0">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-recyclerview-v7-23.4.0_766a96aeaa7fb9b0f0a02491876c38d3b12c34e0.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/joda-time/joda-time/2.9.4/1c295b462f16702ebe720bbb08f62e1ba80da41b/joda-time-2.9.4.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="1c295b462f16702ebe720bbb08f62e1ba80da41b">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/joda-time-2.9.4_86d274c2303c262f8a6f5fb182338368b55b7bab.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/biz.kasual/materialnumberpicker/1.2.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="927f6a0e55849a056f0d573a3db63de481381140">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/biz.kasual-materialnumberpicker-1.2.1_68ccb4a09e3b3b25851d6ddaf09eb75a0ecbbff6.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/com.parse.bolts/bolts-android/1.1.4/129874135e6081269ace2312092031558865de12/bolts-android-1.1.4.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="129874135e6081269ace2312092031558865de12">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/bolts-android-1.1.4_4f17a00e8ca03d5a13e42c6dbbe2105a0356a044.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/.gradle/caches/modules-2/files-2.1/com.nineoldandroids/library/2.4.0/e9b63380f3a242dbdbf103a2355ad7e43bad17cb/library-2.4.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="e9b63380f3a242dbdbf103a2355ad7e43bad17cb">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/library-2.4.0_4b72c499062d9b3545440bbc9563a8dd30e8d705.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.facebook.android/facebook-android-sdk/3.22.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="11b7b899500f0518d19e971dd7626503ad96514b">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.facebook.android-facebook-android-sdk-3.22.0_19f259b3055bf548680d5995fb6a1015d4d02c48.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/design/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="5326d9a850d491714fef8cbfaa9ea3416f0bf0d2">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-design-23.4.0_a619096c437e57baf4c95e73aa083d05500b9d28.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.4.0/support-annotations-23.4.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/support-annotations-23.4.0_ec6f79807cc2b39ccc54a82e4e00e5cadfca2264.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.android.support-appcompat-v7-23.4.0_febde1686aaca1740512fac46020399c1fc24485.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.github.jakob-grabner/Circle-Progress-View/v1.2.9/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="5d355f2fcfdc841c9c5583998df279ba4427e0b3">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.github.jakob-grabner-Circle-Progress-View-v1.2.9_92f637a4c251d04e96854be0ee192b4761798dea.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.daimajia.easing/library/1.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="d7e947f993bf32a00fcb3078cdda8bb11c930afb">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.daimajia.easing-library-1.0.1_cc992f68709140e65d77032a423a9016f1c5c532.jar" />
+    </item>
+    <item
+        jar="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/exploded-aar/com.karumi/dexter/2.2.2/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="22bab473db1c258a4c7e8f0ae50c651e0de6b845">
+        <dex dex="/Users/kihon/AndroidProject/ArmyLogout/app/build/intermediates/pre-dexed/release/com.karumi-dexter-2.2.2_073bf68de9015bfc38b4079edc86ff72dbbe6d6a.jar" />
+    </item>
+
+</items>
