@@ -1,11 +1,15 @@
 package com.kihon.android.apps.army_logout.settings;
 
+import com.google.gson.Gson;
+
 import com.kihon.android.apps.army_logout.AppApplication;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
+
+import java.util.Arrays;
 
 public class SettingsUtils {
 
@@ -26,6 +30,7 @@ public class SettingsUtils {
 
     private static final String PREF_LOGIN_DATE_MILLIS = "pref_login_date_millis";
     private static final String PREF_MILITARY_INFO = "pref_military_info";
+    private static final String PREF_INFO_ITEM_INDEXES = "pref_info_item_indexes";
 
     public static void setDeviceId(String deviceId) {
         sSharedPreferences.edit().putString(PREF_DEVICE_ID, deviceId).apply();
@@ -68,6 +73,14 @@ public class SettingsUtils {
 
     public static void setMilitaryInfo(String jsonString) {
         sSharedPreferences.edit().putString(PREF_MILITARY_INFO, jsonString).apply();
+    }
 
+    public static int[] getInfoItemIndexes() {
+        String string = sSharedPreferences.getString(PREF_INFO_ITEM_INDEXES, null);
+        return string == null ? null : new Gson().fromJson(string, int[].class);
+    }
+
+    public static void setInfoItemIndexes(int[] indexes) {
+        sSharedPreferences.edit().putString(PREF_INFO_ITEM_INDEXES, Arrays.toString(indexes)).apply();
     }
 }

@@ -30,8 +30,6 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_centerInParent="true"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
             android:scaleType="center"
             android:src="@drawable/ic_reorder_grey_500_24dp" />
 
@@ -39,7 +37,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginEnd="16dp"
             android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/imageView"
             android:layout_toLeftOf="@id/handle"
@@ -56,14 +56,33 @@
                 android:textSize="16sp"
                 tools:text="Title" />
 
-            <TextView
-                android:id="@+id/subtitle"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="2dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                android:textColor="@android:color/holo_purple"
-                tools:text="Subtitle" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+                    android:id="@+id/login_progressBar"
+                    style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    app:rcBackgroundColor="@color/colorPrimaryDark"
+                    app:rcProgressColor="@color/colorPrimary"
+                    app:rcRadius="6dp" />
+
+                <TextView
+                    android:id="@+id/login_percent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="%"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    android:textColor="@android:color/holo_purple" />
+            </LinearLayout>
 
         </LinearLayout>
 

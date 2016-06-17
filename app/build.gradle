@@ -54,4 +54,6 @@ dependencies {
     compile 'com.daimajia.easing:library:1.0.1@aar'
     compile 'joda-time:joda-time:2.9.4'
 
+    compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
+
 }
