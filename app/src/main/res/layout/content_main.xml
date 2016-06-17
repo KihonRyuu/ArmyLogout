@@ -19,7 +19,8 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:listitem="@layout/list_item_drink_list" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -296,26 +297,6 @@
                         android:text="退伍令下載進度"
                         android:textSize="@dimen/com_facebook_loginview_text_size" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <ProgressBar
-                            android:id="@+id/login_progressBar"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginRight="5dp"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:id="@+id/login_Percent"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="%"
-                            android:textAppearance="?android:attr/textAppearanceSmall"
-                            android:textColor="@color/com_facebook_blue" />
-                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 

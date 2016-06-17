@@ -1,9 +1,14 @@
 package com.kihon.android.apps.army_logout;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 import com.google.gson.Gson;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 import com.facebook.FacebookRequestError;
 import com.facebook.HttpMethod;
 import com.facebook.Request;
@@ -47,6 +52,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -54,6 +60,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.SpannableString;
@@ -65,6 +72,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -94,10 +102,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import at.grabner.circleprogress.AnimationState;
 import at.grabner.circleprogress.AnimationStateChangedListener;
@@ -107,7 +114,7 @@ import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnStartDragListener {
 
     public static final String PREF = "ARMY_LOGOUT_PREF";
     public static final String PREF_LOGINDATE = "ARMY_LOGOUT_LoginDate";
@@ -168,12 +175,12 @@ public class MainActivity extends AppCompatActivity {
     TextView mTvStatus;
     @BindView(R.id.login_date_btn)
     Button mBtnLoginDate;
-    @BindView(R.id.login_progressBar)
-    ProgressBar mProgressBarLogin;
+    /*    @BindView(R.id.login_progressBar)
+        ProgressBar mProgressBarLogin;*/
     @BindView(R.id.progressBar_connect_facebook)
     ProgressBar mProgressBarFbConnect;
-    @BindView(R.id.login_Percent)
-    TextView mTvLoginPercent;
+    /*    @BindView(R.id.login_Percent)
+        TextView mTvLoginPercent;*/
     //    private static int sWidgetColors = -1;
 //	@BindView(R.id.delete_day_edittext)
 //	EditText mEtDeleteDay;
@@ -230,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
     private DialogFragment mCustomRangeDialog = new CustomRangeDialogFragment();
     private String mCustomServiceRangeText = null;
     private ArrayAdapter<String> mServiceDayAdapter;
-//    private int mDeleteDay;
+    //    private int mDeleteDay;
     private String mCountTimeText;
 
     private Runnable mCheckNetWorkStatusRunnable = new Runnable() {
@@ -242,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
     };
     private ServiceUtil mServiceUtil;
     private DemoView[] mDemoViews;
-    private ServiceTime mServiceTime = ServiceTime.ONE_YEAR;
+    //    private ServiceTime mServiceTime = ServiceTime.ONE_YEAR;
     private Runnable mRefreshInformationRunnable = new Runnable() {
 
         @Override
@@ -260,14 +267,14 @@ public class MainActivity extends AppCompatActivity {
                 mTvStatus.setText("準備好踏入陰間了嗎？");
             }
 
-            String percentText = new DecimalFormat("#.#").format(mServiceUtil.getPercentage());
+           /* String percentText = new DecimalFormat("#.#").format(mServiceUtil.getPercentage());
             if (mServiceUtil.getPercentage() >= 100.0f) {
                 mTvLoginPercent.setText("100%");
             } else if (mServiceUtil.getPercentage() <= 0.0f) {
                 mTvLoginPercent.setText("0%");
             } else {
                 mTvLoginPercent.setText(percentText + "%");
-            }
+            }*/
 
             for (int i = 0; i < mDemoViews.length; i++) {
                 TextView valueInfoTextView = mDemoViews[i].mValueInfoTextview;
@@ -305,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
             }*/
 
             mTvUntilLogoutDays.setText(mServiceUtil.getRemainingDayWithString());
-            mProgressBarLogin.setProgress((int) mServiceUtil.getPercentage());
+//            mProgressBarLogin.setProgress((int) mServiceUtil.getPercentage());
 
             if (mServiceUtil.isHundredDays()) {
                 mBreakMonthBlock.setVisibility(View.VISIBLE);
@@ -319,28 +326,40 @@ public class MainActivity extends AppCompatActivity {
                 mTvUntilLogoutDays.setText("0天 00:00:00");
             }
 
-            Object[][] infos = new Object[][]{new Object[]{R.drawable.ic_date_range_black_24dp, "入伍日期", mServiceUtil.getLoginDateString()},
-                    new Object[]{R.drawable.ic_directions_run_black_24dp, "役期", mServiceTime.getDisplayText()},
-                    new Object[]{R.drawable.ic_all_inclusive_black_24px, "折抵", mServiceUtil.getDiscountDays() + "天"},
-                    new Object[]{R.drawable.ic_school_black_24dp, "距離退伍剩下", mServiceUtil.getRemainingDayWithString()}};
+//            InfoItem infoItems = new InfoItem(mServiceUtil);
+
+
+           /* Object[][] infos = new Object[][]{
+                    new Object[]{R.drawable.ic_date_range_black_24dp, "入伍日期", mServiceUtil.getLoginDateString()},
+                    new Object[]{R.drawable.ic_access_time_black_24dp, "役期", mServiceUtil.getServiceTime().getDisplayText()},
+                    new Object[]{R.drawable.ic_directions_run_black_24dp, "退伍日期", mServiceUtil.getRealLogoutDateString()},
+                    new Object[]{R.drawable.ic_all_inclusive_black_24px, "折抵", String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays())},
+                    new Object[]{R.drawable.ic_time_countdown_black_24dp, "距離退伍剩下", mServiceUtil.getRemainingDayWithString()},
+                    new Object[]{R.drawable.ic_school_black_24dp, "退伍令下載進度", mServiceUtil.getPercentage()}};
+*/
 
             if (mInfoAdapter == null) {
                 mData = new ArrayList<>();
-                mInfoAdapter = new InfoAdapter(MainActivity.this, mData);
+                mInfoAdapter = new InfoAdapter(MainActivity.this, mData, MainActivity.this);
                 mRecyclerView.setAdapter(mInfoAdapter);
+                ItemTouchHelper.Callback callback = new InfoItemTouchHelperCallback(mInfoAdapter);
+                mTouchHelper = new ItemTouchHelper(callback);
+                mTouchHelper.attachToRecyclerView(mRecyclerView);
             } else {
                 mData.clear();
                 mInfoAdapter.notifyDataSetChanged();
             }
 
-            for (Object[] info : infos) {
-                HashMap<String, Object> item = new HashMap<>();
-                item.put("icon", info[0]);
-                item.put("title", info[1].toString());
-                item.put("subtitle", info[2].toString());
-                mData.add(item);
-            }
+            mInfoAdapter.setServiceUtil(mServiceUtil);
 
+            int[] indexes = SettingsUtils.getInfoItemIndexes();
+            if (indexes == null) {
+                Collections.addAll(mData, InfoItem.values());
+            } else {
+                for (int index : indexes) {
+                    mData.add(InfoItem.values()[index]);
+                }
+            }
 
             //END
             mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
@@ -348,12 +367,13 @@ public class MainActivity extends AppCompatActivity {
 
     };
     private InfoAdapter mInfoAdapter;
-    private List<HashMap<String, Object>> mData;
+    private List<InfoItem> mData;
     private MilitaryInfo mMilitaryInfo;
+    private ItemTouchHelper mTouchHelper;
 
     private void onSettingsSelected(int position, View v) {
-        switch (position) {
-            case 0:
+        switch (mData.get(position)) {
+            case LoginDate:
                 DateTime dateTime = new DateTime(mMilitaryInfo.getBegin());
 
                 int year = dateTime.getYear();
@@ -369,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
                 }, year, monthOfYear, dayOfMonth);
                 loginDatePickerDialog.show();
                 break;
-            case 1:
+            case Period:
 //                Context wrapper = new ContextThemeWrapper(v.getContext(), v.getContext().getTheme());
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 for (int i = 0; i < ServiceTime.values().length; i++) {
@@ -378,8 +398,8 @@ public class MainActivity extends AppCompatActivity {
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        /*if (item.getItemId() == ServiceTime.values().length - 1) {
-                            mCustomRangeDialog.show(getFragmentManager(),"custom_range_dialog");
+                       /* if (item.getItemId() == ServiceTime.values().length - 1) {
+                            mCustomRangeDialog.show(getFragmentManager(), "custom_range_dialog");
                         } else {
                             sIntServiceRange = item.getItemId();
                             loadUserData();
@@ -392,7 +412,9 @@ public class MainActivity extends AppCompatActivity {
                 });
                 popupMenu.show();
                 break;
-            case 2:
+            case LogoutDate:
+                break;
+            case Discount:
                 final MaterialNumberPicker numberPicker = new MaterialNumberPicker.Builder(MainActivity.this)
                         .minValue(0)
                         .maxValue(30)
@@ -423,6 +445,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                         })
                         .show();
+                break;
+            case CounterTimer:
+                break;
+            case CounterProgressbar:
                 break;
             default:
                 break;
@@ -457,22 +483,23 @@ public class MainActivity extends AppCompatActivity {
             int deleteDays = Integer.parseInt(settings.getString(PREF_DELETEDAY, null));
             int serviceRange = settings.getInt(PREF_SERVICERANGE, 0);
 
+            ServiceTime serviceTime;
             switch (serviceRange) {
                 case RANGE_DEFAULT_ONE_YEAR:
-                    mServiceTime = ServiceTime.ONE_YEAR;
+                    serviceTime = ServiceTime.ONE_YEAR;
                     break;
                 case RANGE_FOUR_MONTH:
-                    mServiceTime = ServiceTime.FOUR_MONTHS;
+                    serviceTime = ServiceTime.FOUR_MONTHS;
                     break;
                 case RANGE_ONE_YEAR_FIFTEEN:
-                    mServiceTime = ServiceTime.ONE_YEAR_FIFTH_DAYS;
+                    serviceTime = ServiceTime.ONE_YEAR_FIFTH_DAYS;
                     break;
                 default:
-                    mServiceTime = ServiceTime.FOUR_YEARS;
+                    serviceTime = ServiceTime.FOUR_YEARS;
                     break;
             }
 
-            mMilitaryInfo = new MilitaryInfo(loginMillis, mServiceTime, deleteDays);
+            mMilitaryInfo = new MilitaryInfo(loginMillis, serviceTime, deleteDays);
             SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
             getSharedPreferences(PREF, Context.MODE_PRIVATE).edit().clear().apply();
         } else {
@@ -483,7 +510,6 @@ public class MainActivity extends AppCompatActivity {
 //        loadUserData();
         setListeners();
         initCircleView();
-        new LongOperation().execute();
 
         ChangeLog cl = new ChangeLog(this);
         if (cl.firstRun())
@@ -527,39 +553,208 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
+    }
+
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        mTouchHelper.startDrag(viewHolder);
+    }
+
+    public class InfoItemTouchHelperCallback extends ItemTouchHelper.Callback {
+
+        private final ItemTouchHelperAdapter mAdapter;
+
+        public InfoItemTouchHelperCallback(ItemTouchHelperAdapter adapter) {
+            mAdapter = adapter;
+        }
+
+        @Override
+        public boolean isLongPressDragEnabled() {
+            return false;
+        }
+
+        @Override
+        public boolean isItemViewSwipeEnabled() {
+            return false;
+        }
+
+        @Override
+        public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+            switch (actionState) {
+                case ItemTouchHelper.ACTION_STATE_DRAG:
+                    mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
+                    break;
+                case ItemTouchHelper.ACTION_STATE_IDLE:
+                    mRefreshInformationHandler.post(mRefreshInformationRunnable);
+                    if (viewHolder instanceof ItemTouchHelperViewHolder) {
+                        ItemTouchHelperViewHolder itemViewHolder = (ItemTouchHelperViewHolder) viewHolder;
+                        itemViewHolder.onItemSelected();
+                    }
+                    break;
+            }
+
+            super.onSelectedChanged(viewHolder, actionState);
+        }
+
+        @Override
+        public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+            int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+            return makeMovementFlags(dragFlags, swipeFlags);
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+            return true;
+        }
+
+        @Override
+        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
+        }
 
     }
 
-    public static class InfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    public static class InfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
 
         private final LayoutInflater mLayoutInflater;
-        private final List<? extends Map<String, Object>> mData;
+        private final List<InfoItem> mData;
+        private final OnStartDragListener mDragStartListener;
+        private final Context mContext;
+        private ServiceUtil mServiceUtil;
+        private boolean isReorder;
 
-        public InfoAdapter(Context context, List<? extends Map<String, Object>> data) {
+        public InfoAdapter(Context context, List<InfoItem> data, OnStartDragListener dragStartListener) {
+            mContext = context;
             mLayoutInflater = LayoutInflater.from(context);
             mData = data;
+            mDragStartListener = dragStartListener;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return mData.get(position) == InfoItem.CounterProgressbar ? 1 : 0;
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ItemViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list, parent, false));
+            if (viewType == 0)
+                return new ItemViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list, parent, false));
+            else
+                return new ProgressbarViewHolder(mLayoutInflater.inflate(R.layout.list_item_drink_list_2, parent, false));
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+            InfoItem item = mData.get(position);
             if (holder instanceof ItemViewHolder) {
-                ((ItemViewHolder) holder).icon.setImageResource((Integer) mData.get(position).get("icon"));
-                ((ItemViewHolder) holder).title.setText(mData.get(position).get("title").toString());
-                ((ItemViewHolder) holder).subtitle.setText(mData.get(position).get("subtitle").toString());
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
-//                ((ItemViewHolder) holder).time.setText(sdf.format(item.cutoffDatetime));
-//                ImageLoader.getInstance().displayImage(item.avatar, ((ItemViewHolder) holder).profilePicture);
+                ((ItemViewHolder) holder).icon.setImageResource(item.getImageRes());
+                ((ItemViewHolder) holder).title.setText(item.getTitle());
+                switch (item) {
+                    case LoginDate:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getLoginDateString());
+                        break;
+                    case Period:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getServiceTime().getDisplayText());
+                        break;
+                    case LogoutDate:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRealLogoutDateString());
+                        break;
+                    case Discount:
+                        ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
+                        break;
+                    case CounterTimer:
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRemainingDayWithString());
+                        break;
+                }
+                ((ItemViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
+                ((ItemViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                            mDragStartListener.onStartDrag(holder);
+                        }
+                        return false;
+                    }
+                });
+            } else if (holder instanceof ProgressbarViewHolder) {
+                ((ProgressbarViewHolder) holder).icon.setImageResource(item.getImageRes());
+                ((ProgressbarViewHolder) holder).title.setText(item.getTitle());
+                ((ProgressbarViewHolder) holder).progressBar.setProgress(mServiceUtil.getPercentage());
+                ((ProgressbarViewHolder) holder).percent.setText(String.format(Locale.TAIWAN, "%.1f%%", mServiceUtil.getPercentage()));
+                ((ProgressbarViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
+                ((ProgressbarViewHolder) holder).handleView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                            mDragStartListener.onStartDrag(holder);
+                        }
+                        return false;
+                    }
+                });
             }
+
         }
 
         @Override
         public int getItemCount() {
             return mData.size();
+        }
+
+
+        @Override
+        public void onItemMove(int fromPosition, int toPosition) {
+            if (fromPosition < toPosition) {
+                for (int i = fromPosition; i < toPosition; i++) {
+                    Collections.swap(mData, i, i + 1);
+                }
+            } else {
+                for (int i = fromPosition; i > toPosition; i--) {
+                    Collections.swap(mData, i, i - 1);
+                }
+            }
+            notifyItemMoved(fromPosition, toPosition);
+            if (SettingsUtils.getInfoItemIndexes() == null) {
+                SettingsUtils.setInfoItemIndexes(Ints.toArray(ContiguousSet.create(Range.closedOpen(0, getItemCount()), DiscreteDomain.integers())));
+            }
+            SettingsUtils.setInfoItemIndexes(swap(SettingsUtils.getInfoItemIndexes(), fromPosition, toPosition));
+//            swap(SettingsUtils.getInfoItemIndexes(), fromPosition, toPosition);
+        }
+
+        /**
+         * Swaps {@code array[i]} with {@code array[j]}.
+         */
+        static int[] swap(int[] array, int i, int j) {
+            int temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+
+        @Override
+        public void onItemDismiss(int position) {
+
+        }
+
+        public void onReorderMode(boolean value) {
+            isReorder = value;
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public void onItemSelected() {
+
+        }
+
+        @Override
+        public void onItemClear() {
+
+        }
+
+        public void setServiceUtil(ServiceUtil serviceUtil) {
+            mServiceUtil = serviceUtil;
         }
 
         class ItemViewHolder extends RecyclerView.ViewHolder {
@@ -570,9 +765,30 @@ public class MainActivity extends AppCompatActivity {
             TextView title;
             @BindView(R.id.subtitle)
             TextView subtitle;
-//            @BindView(R.id.time) TextView time;
+            @BindView(R.id.handle)
+            ImageView handleView;
 
             public ItemViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
+
+            }
+        }
+
+        class ProgressbarViewHolder extends RecyclerView.ViewHolder {
+
+            @BindView(R.id.imageView)
+            ImageView icon;
+            @BindView(R.id.title)
+            TextView title;
+            @BindView(R.id.login_progressBar)
+            RoundCornerProgressBar progressBar;
+            @BindView(R.id.login_percent)
+            TextView percent;
+            @BindView(R.id.handle)
+            ImageView handleView;
+
+            public ProgressbarViewHolder(View view) {
                 super(view);
                 ButterKnife.bind(this, view);
             }
@@ -816,6 +1032,7 @@ public class MainActivity extends AppCompatActivity {
                 selectItem(0);
             }
         }, 550);
+        new LongOperation().execute();
     }
 
     @Override
@@ -825,118 +1042,9 @@ public class MainActivity extends AppCompatActivity {
         mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
         mCheckNetWorkStatusHandler.removeCallbacks(mCheckNetWorkStatusRunnable);
 
+        SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
 //        savePrefs();
     }
-
-/*
-    @Deprecated
-    private void savePrefs() {
-        SharedPreferences settings = getSharedPreferences(PREF, 0);
-        settings.edit()
-                .putString(PREF_LOGINDATE, sLoginDate)
-//				.putString(PREF_SERVICEDAY, field_height.getText().toString())
-                .putString(PREF_DELETEDAY, String.valueOf(mDeleteDay))
-                .putString(PREF_USERNAME, USER_FB_NAME)
-                .putLong(PREF_LOGINMILLIS, mLoginDateCalendar.getTimeInMillis())
-                .putLong(PREF_LOGOUTMILLIS, mLogoutDateCalendar.getTimeInMillis())
-//				.putInt(PREF_WIDGETBGCOLOR, sWidgetColors)
-                .putInt(PREF_SERVICERANGE, mSpinnerServiceDay.getSelectedItemPosition())
-                .putString(PREF_CUSTOM_SERVICERANGE_YEAR, sCustomServiceRangeArray[0])
-                .putString(PREF_CUSTOM_SERVICERANGE_MONTH, sCustomServiceRangeArray[1])
-                .putString(PREF_CUSTOM_SERVICERANGE_DAY, sCustomServiceRangeArray[2])
-                .apply();
-    }
-*/
-
-    /*@Deprecated
-    private void restorePrefs() {
-
-        SharedPreferences settings = getSharedPreferences(PREF, Context.MODE_PRIVATE);
-        String prefLoginDate = settings.getString(PREF_LOGINDATE, "");
-        String prefDeleteDays = settings.getString(PREF_DELETEDAY, "");
-
-        sLoginDate = prefLoginDate.equals("") ? mFormat.format(System.currentTimeMillis()) : prefLoginDate;
-
-        if (!"".equals(prefDeleteDays)) {
-            sDeleteDays = prefDeleteDays;
-            mDeleteDay = Integer.valueOf(sDeleteDays);
-            mDeleteDayButton.setText(sDeleteDays);
-        } else {
-            sDeleteDays = "0";
-        }
-
-        sIntServiceRange = settings.getInt(PREF_SERVICERANGE, 0);
-        USER_FB_NAME = settings.getString(PREF_USERNAME, "弟兄");
-//        sWidgetColors = settings.getInt(PREF_WIDGETBGCOLOR, -1);
-
-        sCustomServiceRangeArray[0] = settings.getString(PREF_CUSTOM_SERVICERANGE_YEAR, "4");
-        sCustomServiceRangeArray[1] = settings.getString(PREF_CUSTOM_SERVICERANGE_MONTH, "0");
-        sCustomServiceRangeArray[2] = settings.getString(PREF_CUSTOM_SERVICERANGE_DAY, "0");
-
-        calCustomServiceRange(sCustomServiceRangeArray);
-
-        mTvUsername.setText("YO~ " + USER_FB_NAME + "!");
-    }*/
-
-    /*@Deprecated
-    private void loadUserData() {
-        try {
-//            if(sLoginDate)
-            mLoginDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd", new Locale("TAIWAN")).parse(sLoginDate));
-//            mLoginDateCalendar.setTimeInMillis(DateTime.parse(sLoginDate).getMillis());
-            int minusDay = mDeleteDay;
-            mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd", new Locale("TAIWAN")).parse(sLoginDate));
-
-            switch (sIntServiceRange) {
-                case RANGE_DEFAULT_ONE_YEAR:
-                    mServiceTime = ServiceTime.ONE_YEAR;
-                    mLogoutDateCalendar.add(Calendar.YEAR, 1);
-                    break;
-                case RANGE_FOUR_MONTH:
-                    mServiceTime = ServiceTime.FOUR_MONTHS;
-                    mLogoutDateCalendar.add(Calendar.MONTH, 4);
-                    break;
-                case RANGE_ONE_YEAR_FIFTEEN:
-                    mServiceTime = ServiceTime.ONE_YEAR_FIFTH_DAYS;
-                    mLogoutDateCalendar.add(Calendar.YEAR, 1);
-                    mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, 15);
-                    break;
-                case RANGE_CUSTOM: //自訂役期
-                    mLogoutDateCalendar.add(Calendar.YEAR, Integer.valueOf(sCustomServiceRangeArray[0]));
-                    mLogoutDateCalendar.add(Calendar.MONTH, Integer.valueOf(sCustomServiceRangeArray[1]));
-                    mLogoutDateCalendar.add(Calendar.DAY_OF_MONTH, Integer.valueOf(sCustomServiceRangeArray[2]));
-                    break;
-                default:
-                    break;
-            }
-
-            mLogoutDateCalendar.add(Calendar.DAY_OF_YEAR, -minusDay);
-
-            if (mLoginDateCalendar.getTimeInMillis() < System.currentTimeMillis()) {
-                login_yet = true;
-            } else {
-                login_yet = false;
-            }
-
-//			mLogoutDateCalendar.setTime(new SimpleDateFormat("yyyy-MM-dd").parse(LOGOUT_TIME));
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        int year = mLoginDateCalendar.get(Calendar.YEAR);
-        int month = mLoginDateCalendar.get(Calendar.MONTH) + 1;
-        int day = mLoginDateCalendar.get(Calendar.DAY_OF_MONTH);
-
-        mBtnLoginDate.setText(year + "年" + month + "月" + day + "日");
-
-        year = mLogoutDateCalendar.get(Calendar.YEAR);
-        month = mLogoutDateCalendar.get(Calendar.MONTH) + 1;
-        day = mLogoutDateCalendar.get(Calendar.DAY_OF_MONTH);
-
-        mTvLogoutDate.setText(year + "年" + month + "月" + day + "日");
-//		String logout_date = year+"-"+(month)+"-"+day;
-//		LOGOUT_TIME = logout_date;
-    }*/
 
     private void publishStory(String post_message, boolean takepic) throws Exception {
         String graphPath = "me/feed";
@@ -972,7 +1080,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 postParams.putString("name", "放假時間是很珍貴的!");
                 postParams.putString("caption", "請愛護服役人員");
-                postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
+//                postParams.putString("description", "剩下 " + mFacebookCountTimeText + "就退了，退伍令也已經載了" + mTvLoginPercent.getText() + "了");
                 postParams.putString("link", "https://play.google.com/store/apps/details?id=com.kihon.android.apps.army_logout");
                 postParams.putString("picture", "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-frc1/s160x160/481191_436050169810593_1810179700_a.png");
             }
@@ -1051,40 +1159,6 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
     }
-
-    private void onSessionStateChange(Session session, SessionState state, Exception exception) {
-        if (state.isOpened()) {
-//	        shareButton.setVisibility(View.VISIBLE);
-        } else if (state.isClosed()) {
-//	        shareButton.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    /*public void showDatePickerDialog(View v) {
-//		DialogFragment newFragment = new DatePickerFragment();
-//		newFragment.show(getFragmentManager(), "datePicker");
-        Calendar calendar = mLoginDateCalendar;
-
-        int year = calendar.get(Calendar.YEAR);
-        int monthOfYear = calendar.get(Calendar.MONTH);
-        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog.OnDateSetListener callBack = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear,
-                                  int dayOfMonth) {
-                Log.d(TAG, year + "年" + monthOfYear + "月" + dayOfMonth + "日");
-
-                String login_date = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
-//                sLoginDate = new DateTime(year, monthOfYear, dayOfMonth, 0, 0, 0, DateTimeZone.getDefault()).getMillis();
-                sLoginDate = login_date;
-                loadUserData();
-
-            }
-        };
-        DatePickerDialog pickerDialog = new DatePickerDialog(this, callBack, year, monthOfYear, dayOfMonth);
-        pickerDialog.show();
-    }*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -1233,6 +1307,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_change_widger_bgcolor:
                 startActivity(new Intent(this, WidgetColorPickerActivity.class));
                 return true;
+            case R.id.action_reorder:
+                mInfoAdapter.onReorderMode(!mInfoAdapter.isReorder);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -1271,30 +1348,6 @@ public class MainActivity extends AppCompatActivity {
     interface UpdateCallbacks {
         void onUpdate(float percent);
     }
-
-	/*public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
-
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			// Use the current date as the default date in the picker
-			final Calendar c = mLoginDateCalendar;
-			int year = c.get(Calendar.YEAR);
-			int month = c.get(Calendar.MONTH);
-			int day = c.get(Calendar.DAY_OF_MONTH);
-
-			// Create a new instance of DatePickerDialog and return it
-			return new DatePickerDialog(getActivity(), this, year, month, day);
-		}
-
-		public void onDateSet(DatePicker view, int year, int month, int day) {
-			// Do something with the date chosen by the user
-			Log.d(TAG, year+"年"+month+"月"+day+"日");
-
-			String login_date = year+"-"+(month+1)+"-"+day;
-			sLoginDate = login_date;
-			loadUserData();
-		}
-	}*/
 
     private static class ViewPagerAdapter extends PagerAdapter {
 
@@ -1659,5 +1712,23 @@ public class MainActivity extends AppCompatActivity {
             this.discount = discount;
             return this;
         }
+    }
+
+    private class DisplayData {
+
+        private final InfoItem mInfoItem;
+
+        public DisplayData(InfoItem infoItem) {
+            mInfoItem = infoItem;
+        }
+
+        public int getImageResource() {
+            return mInfoItem.getImageRes();
+        }
+
+        public String getTitle() {
+            return mInfoItem.getTitle();
+        }
+
     }
 }

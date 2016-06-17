@@ -32,6 +32,10 @@ public class ServiceUtil {
         setEndTime();
     }
 
+    public MainActivity.ServiceTime getServiceTime() {
+        return mServiceTime;
+    }
+
     public ServiceUtil(MainActivity.MilitaryInfo militaryInfo) {
         this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount());
     }
@@ -39,6 +43,11 @@ public class ServiceUtil {
     public String getLoginDateString() {
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy年M月d日");
         return mStartDateTime.toString(fmt);
+    }
+
+    public String getRealLogoutDateString() {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy年M月d日");
+        return mRealLogoutDateTime.toString(fmt);
     }
 
     private void setEndTime() {
@@ -54,6 +63,21 @@ public class ServiceUtil {
                 break;
             case FOUR_MONTHS:
                 mStandLogoutDateTime = mStartDateTime.plusMonths(4);
+                break;
+            case FOUR_MONTHS_FIVE_DAYS:
+                mStandLogoutDateTime = mStartDateTime.plusMonths(4).plusDays(5);
+                break;
+            case SIX_MONTHS:
+                mStandLogoutDateTime = mStartDateTime.plusMonths(6);
+                break;
+            case THREE_YEARS:
+                mStandLogoutDateTime = mStartDateTime.plusYears(3);
+                break;
+            case ONE_YEAR_SIX_MONTHS:
+                mStandLogoutDateTime = mStartDateTime.plusYears(1).plusMonths(6);
+                break;
+            case TEN_MONTHS:
+                mStandLogoutDateTime = mStartDateTime.plusMonths(10);
                 break;
         }
         mRealLogoutDateTime = mStandLogoutDateTime.minusDays(getDiscount());
