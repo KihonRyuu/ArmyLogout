@@ -9,6 +9,7 @@ public enum InfoItem {
     Period(R.drawable.ic_access_time_black_24dp, "役期"),
     LogoutDate(R.drawable.ic_directions_run_black_24dp, "退伍日期"),
     Discount(R.drawable.ic_all_inclusive_black_24px, "折抵"),
+    HundredDays(R.drawable.ic_mood_black_24dp, "距離破月還有!!"),
     CounterTimer(R.drawable.ic_time_countdown_black_24dp, "距離退伍剩下"),
     CounterProgressbar(R.drawable.ic_school_black_24dp, "退伍令下載進度");
 

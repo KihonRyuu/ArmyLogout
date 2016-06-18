@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_drawer"
+        android:src="@drawable/ic_check_black_24dp"
         android:visibility="gone"
         app:borderWidth="0dp"
         app:elevation="6dp"
@@ -37,5 +37,19 @@
         app:layout_anchorGravity="bottom|right|end"
         app:pressedTranslationZ="12dp"
         app:rippleColor="#a6a6a6" />
+
+    <com.github.fcannizzaro.materialtip.MaterialTip
+        android:id="@+id/tip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
+<!--    app:tip_background="@color/md_grey_400"
+    app:tip_color="@color/colorPrimary"
+    app:tip_icon="@drawable/isometric_material_icons_clock"
+    app:tip_negative="不了"
+    app:tip_positive="觀看導覽"
+    app:tip_text="想瞭解一下有哪些功能嗎？"
+    app:tip_text_color="@color/colorAccent"-->
 
 </android.support.design.widget.CoordinatorLayout>
