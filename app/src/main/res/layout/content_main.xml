@@ -19,10 +19,9 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-             />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <!--tools:listitem="@layout/list_item_drink_list"-->
+        <!--tools:listitem="@layout/list_item_main_two_line"-->
 
         <LinearLayout
             android:visibility="gone"

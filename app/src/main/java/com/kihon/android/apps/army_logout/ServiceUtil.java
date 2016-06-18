@@ -20,7 +20,7 @@ import java.util.Locale;
  */
 public class ServiceUtil {
 
-    private final long mStartTime;
+    private final long mStartTimeInMillis;
     private final MainActivity.ServiceTime mServiceTime;
     private final DateTime mStartDateTime;
     private final int mCounterTextPeriodType;
@@ -29,8 +29,8 @@ public class ServiceUtil {
     private DateTime mRealLogoutDateTime;
     private Period mPeriod;
 
-    public ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays, int periodType) {
-        mStartTime = startTimeInMillis;
+    private ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays, int periodType) {
+        mStartTimeInMillis = startTimeInMillis;
         mServiceTime = serviceTime;
         mDiscountDays = discountDays;
         mCounterTextPeriodType = periodType;
@@ -40,6 +40,10 @@ public class ServiceUtil {
 
     public ServiceUtil(MilitaryInfo militaryInfo) {
         this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount(), militaryInfo.getPeriodType());
+    }
+
+    public long getStartTimeInMillis() {
+        return mStartTimeInMillis;
     }
 
     public MainActivity.ServiceTime getServiceTime() {
@@ -168,5 +172,16 @@ public class ServiceUtil {
     public void setDiscountDays(int value) {
         mDiscountDays = value;
         setEndTime();
+    }
+
+    public boolean isIllegalDiscountValue() {
+        return isIllegalDiscountValue(getDiscount());
+    }
+
+    public boolean isIllegalDiscountValue(Integer discountDays) {
+        if (mStandLogoutDateTime.minusDays(discountDays).isBefore(mStartDateTime.toInstant())){
+            return false;
+        }
+        return true;
     }
 }
