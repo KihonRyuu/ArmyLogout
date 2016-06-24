@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:picker="http://schemas.android.com/apk/res/com.kihon.android.apps.army_logout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -67,7 +66,8 @@
                         android:paddingEnd="2dp"
                         android:text="%"
                         android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="@color/com_facebook_blue" />
+                        android:textColor="@color/com_facebook_blue"
+                        android:paddingRight="2dp"/>
 
                     <ProgressBar
                         android:id="@+id/progressBar"
@@ -80,32 +80,32 @@
             </LinearLayout>
         </FrameLayout>
 
-        <RelativeLayout
+        <!--<RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:padding="16dp" >
+            android:padding="16dp">
 
-            <afzkl.development.colorpickerview.view.ColorPickerView
+            &lt;!&ndash;<afzkl.development.colorpickerview.view.ColorPickerView
                 android:id="@id/color_picker_view"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                picker:alphaChannelVisible="true" />
+                picker:alphaChannelVisible="true" />&ndash;&gt;
 
-            <LinearLayout
+            &lt;!&ndash;<LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_alignLeft="@id/color_picker_view"
                 android:layout_alignRight="@id/color_picker_view"
                 android:layout_below="@id/color_picker_view"
                 android:layout_marginTop="16dp"
-                android:orientation="horizontal" >
+                android:orientation="horizontal" >&ndash;&gt;
 
-                <afzkl.development.colorpickerview.view.ColorPanelView
+                &lt;!&ndash;<afzkl.development.colorpickerview.view.ColorPanelView
                     android:id="@id/color_panel_old"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"
-                    android:layout_weight="0.5" />
+                    android:layout_weight="0.5" />&ndash;&gt;
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -117,14 +117,14 @@
                     android:textColor="#000000"
                     android:textSize="20sp" />
 
-                <afzkl.development.colorpickerview.view.ColorPanelView
+                &lt;!&ndash;<afzkl.development.colorpickerview.view.ColorPanelView
                     android:id="@id/color_panel_new"
                     android:layout_width="0px"
                     android:layout_height="fill_parent"
-                    android:layout_weight="0.5" />
+                    android:layout_weight="0.5" />&ndash;&gt;
             </LinearLayout>
         </RelativeLayout>
-
+-->
         <LinearLayout
             android:id="@+id/buttonbar"
             android:layout_width="fill_parent"
