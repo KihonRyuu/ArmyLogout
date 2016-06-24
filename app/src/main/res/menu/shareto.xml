@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:com.kihon.android.apps.army_logout="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/action_shareto_post"
+        android:orderInCategory="1"
+        com.kihon.android.apps.army_logout:showAsAction="ifRoom|withText"
+        android:title="分享">
+    </item>
+    <item
+        android:id="@+id/action_shareto_change"
+        android:orderInCategory="0"
+        com.kihon.android.apps.army_logout:showAsAction="ifRoom|withText"
+        android:title="更改">
+    </item>
+
+</menu>

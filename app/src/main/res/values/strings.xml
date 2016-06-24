@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">國軍弟兄返陽倒數計時器</string>
+    <string name="app_name_short">國軍返陽倒數計時</string>
+    <string name="widget_name">國軍返陽倒數</string>
+    <string name="action_share">分享</string>
+    <string name="action_share_fb">Facebook</string>
+    <string name="action_settings">設定</string>
+    <string name="action_changelog">更新日誌</string>
+    <string name="action_change_widget_bgcolor">更改小工具背景</string>
+    <string name="app_id">216734341784754</string>
+    <string name="login_date">入伍日期</string>
+    <string name="login_howlong">役期</string>
+    <string name="login_delete_day">折抵</string>
+    <string name="ok">確定</string>
+    <string name="cancel">取消</string>
+    <string name="about">關於</string>
+    <string name="connect_fb">與臉書連動</string>
+    <string name="about_app_name">關於國軍弟兄返陽倒數計時器</string>
+    <string name="about_text">\r\n作者:Kihon\r\n\r\n歡迎至Facebook粉絲團反應您的問題\r\nhttp://www.facebook.com/ArmyLogout</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="changelog_full_title">Change Log</string>
+    <string name="changelog_title">What\'s New</string>
+    <string name="changelog_ok_button">確定</string>
+    <string name="changelog_show_full">更多...</string>
+
+    <string-array name="service_day">
+        <item>一年</item>
+        <item>四個月</item>
+        <item>一年15天</item>
+        <item>自訂</item>
+    </string-array>
+    
+    <string-array name="drawer_list_array">
+        <item>自訂役期</item>
+        <item>更改小工具背景</item>
+        <item>更新日誌</item>
+    </string-array>
+    
+    <string-array name="widget_color_picker_list_array">
+        <item>小工具背景</item>
+        <item>小工具文字標題</item>
+        <item>小工具文字副標</item>
+    </string-array>
+
+    <string name="take_picture">拍攝相片</string>
+    <string name="picture_select">選擇相片</string>
+
+</resources>
