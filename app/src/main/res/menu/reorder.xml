@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/action_restore_default_order"
+        android:icon="@drawable/ic_settings_backup_restore_white_24dp"
+        android:orderInCategory="100"
+        android:title="回復預設"
+        app:showAsAction="always" />
+
+</menu>
