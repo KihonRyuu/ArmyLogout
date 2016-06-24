@@ -16,7 +16,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
 //        versionCode 83414004
-        versionCode 85000003
+        versionCode 85000004
         versionName "1.5.0"
         vectorDrawables.useSupportLibrary = true
     }
@@ -25,8 +25,8 @@ android {
 
         release {
             minifyEnabled false
-            shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
         applicationVariants.all { variant ->
@@ -59,7 +59,7 @@ dependencies {
 
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.google.guava:guava:19.0'
-    compile 'com.facebook.android:facebook-android-sdk:3.22.0'
+//    compile 'com.facebook.android:facebook-android-sdk:3.22.0'
 
     compile 'com.jakewharton:butterknife:8.0.1'
     apt 'com.jakewharton:butterknife-compiler:8.0.1'
@@ -72,18 +72,26 @@ dependencies {
     compile 'biz.kasual:materialnumberpicker:1.2.1'
     compile 'com.github.jakob-grabner:Circle-Progress-View:v1.2.9'
 
+    compile 'com.wdullaer:materialdatetimepicker:2.3.0'
+
+
+/*
+
     //CircularBarPager
     compile 'com.github.orangegangsters:library:1.3.4@aar'
     //CirclePageIndicator
-//    compile 'com.viewpagerindicator:library:2.4.1@aar'
+    compile 'com.viewpagerindicator:library:2.4.1@aar'
     compile 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
     //Animations and progress value easing
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.daimajia.easing:library:1.0.1@aar'
+
+*/
+
     compile 'joda-time:joda-time:2.9.4'
 
-    compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
     compile 'jp.wasabeef:recyclerview-animators:2.2.3'
+    compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
     compile 'com.karumi:dexter:2.2.2'
 
     compile ('com.github.worker8:tourguide:1.0.17-SNAPSHOT@aar'){
@@ -91,6 +99,8 @@ dependencies {
     }
 
     compile 'com.github.fcannizzaro:material-tip:1.0.5'
+    compile 'com.sromku:simple-storage:1.2.0'
+
 }
 
 apply plugin: 'com.google.gms.google-services'

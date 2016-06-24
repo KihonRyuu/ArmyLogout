@@ -15,6 +15,7 @@ public enum InfoItem {
 
     private final int mImageRes;
     private final String mTitle;
+    private int mOrder;
 
     InfoItem(int imageRes, String title) {
         mImageRes = imageRes;
@@ -27,5 +28,13 @@ public enum InfoItem {
 
     public String getTitle() {
         return mTitle;
+    }
+
+    public int getOrder() {
+        return mOrder;
+    }
+
+    public void setOrder(int order) {
+        mOrder = order;
     }
 }

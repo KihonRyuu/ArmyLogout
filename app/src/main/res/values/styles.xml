@@ -44,7 +44,7 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="CircularBarPagerStyle">
+    <!--<style name="CircularBarPagerStyle">
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_width">match_parent</item>
 
@@ -59,7 +59,7 @@
         <item name="progress_start_line_enabled">true</item>
         <item name="progress_pager_on_click_enabled">true</item>
         <item name="progress_pager_fill_circle_color">#00000000</item>
-    </style>
+    </style>-->
 
 
 </resources>
