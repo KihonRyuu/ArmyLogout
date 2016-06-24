@@ -17,8 +17,8 @@
     <string name="cancel">取消</string>
     <string name="about">關於</string>
     <string name="connect_fb">與臉書連動</string>
-    <string name="about_app_name">關於國軍弟兄返陽倒數計時器</string>
-    <string name="about_text">\r\n作者:Kihon\r\n\r\n歡迎至Facebook粉絲團反應您的問題\r\nhttp://www.facebook.com/ArmyLogout</string>
+    <string name="about_app_name">關於 國軍弟兄返陽倒數計時器</string>
+    <string name="about_text">作者:Kihon\r\n\r\n有任何建議或問題歡迎透過Facebook粉絲專頁聯絡我</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="changelog_full_title">Change Log</string>
@@ -32,13 +32,13 @@
         <item>一年15天</item>
         <item>自訂</item>
     </string-array>
-    
+
     <string-array name="drawer_list_array">
         <item>自訂役期</item>
         <item>更改小工具背景</item>
         <item>更新日誌</item>
     </string-array>
-    
+
     <string-array name="widget_color_picker_list_array">
         <item>小工具背景</item>
         <item>小工具文字標題</item>
@@ -47,5 +47,16 @@
 
     <string name="take_picture">拍攝相片</string>
     <string name="picture_select">選擇相片</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+
+    <string name="color_palette">換個顏色</string>
+    <string name="md_back_label">返回</string>
+    <string name="md_cancel_label">取消</string>
+    <string name="md_choose_label">選擇</string>
+    <string name="md_custom_label">自訂</string>
+    <string name="md_done_label">完成</string>
+    <string name="md_error_label">錯誤</string>
+    <string name="md_presets_label">預設</string>
 
 </resources>
