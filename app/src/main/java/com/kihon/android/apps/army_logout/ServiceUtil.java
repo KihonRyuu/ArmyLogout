@@ -21,7 +21,7 @@ import java.util.Locale;
 public class ServiceUtil {
 
     private final long mStartTimeInMillis;
-    private final MainActivity.ServiceTime mServiceTime;
+    private final ServiceTime mServiceTime;
     private final DateTime mStartDateTime;
     private final int mCounterTextPeriodType;
     private int mDiscountDays;
@@ -29,7 +29,7 @@ public class ServiceUtil {
     private DateTime mRealLogoutDateTime;
     private Period mPeriod;
 
-    private ServiceUtil(long startTimeInMillis, MainActivity.ServiceTime serviceTime, int discountDays, int periodType) {
+    private ServiceUtil(long startTimeInMillis, ServiceTime serviceTime, int discountDays, int periodType) {
         mStartTimeInMillis = startTimeInMillis;
         mServiceTime = serviceTime;
         mDiscountDays = discountDays;
@@ -39,14 +39,14 @@ public class ServiceUtil {
     }
 
     public ServiceUtil(MilitaryInfo militaryInfo) {
-        this(militaryInfo.getBegin(), MainActivity.ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount(), militaryInfo.getPeriodType());
+        this(militaryInfo.getBegin(), ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount(), militaryInfo.getPeriodType());
     }
 
     public long getStartTimeInMillis() {
         return mStartTimeInMillis;
     }
 
-    public MainActivity.ServiceTime getServiceTime() {
+    public ServiceTime getServiceTime() {
         return mServiceTime;
     }
 

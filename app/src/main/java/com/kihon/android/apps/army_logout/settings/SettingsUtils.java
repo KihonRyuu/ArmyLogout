@@ -1,16 +1,20 @@
 package com.kihon.android.apps.army_logout.settings;
 
-import com.google.gson.Gson;
-
-import com.kihon.android.apps.army_logout.AppApplication;
-import com.kihon.android.apps.army_logout.R;
-
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import com.google.gson.Gson;
+import com.kihon.android.apps.army_logout.AppApplication;
+import com.kihon.android.apps.army_logout.InfoItem;
+import com.kihon.android.apps.army_logout.R;
 
 import java.util.Arrays;
 
@@ -84,7 +88,7 @@ public class SettingsUtils {
 
     public static int[] getInfoItemIndexes() {
         String string = sSharedPreferences.getString(PREF_INFO_ITEM_INDEXES, null);
-        return string == null ? null : new Gson().fromJson(string, int[].class);
+        return string == null ? Ints.toArray(ContiguousSet.create(Range.closedOpen(0, InfoItem.values().length), DiscreteDomain.integers())) : new Gson().fromJson(string, int[].class);
     }
 
     public static void setInfoItemIndexes(int[] indexes) {
