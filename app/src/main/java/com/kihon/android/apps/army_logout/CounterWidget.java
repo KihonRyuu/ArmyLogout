@@ -1,5 +1,9 @@
 package com.kihon.android.apps.army_logout;
 
+import com.google.android.gms.analytics.HitBuilders;
+
+import com.kihon.android.apps.army_logout.settings.SettingsUtils;
+
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -7,18 +11,13 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import java.text.DecimalFormat;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.SimpleTimeZone;
 
 public class CounterWidget extends AppWidgetProvider {
 
@@ -27,6 +26,8 @@ public class CounterWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         // Enter relevant functionality for when the first widget is created
+        AppApplication.getInstance().getDefaultTracker().setScreenName("widget");
+        AppApplication.getInstance().getDefaultTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -45,19 +46,13 @@ public class CounterWidget extends AppWidgetProvider {
 
         private static final String TAG = "UpdateService";
 
-        private long diffInMillis = 0;
-        private long mInDateTimeInMillis = 0;
-        private long mOutDateTimeInMillis = 0;
-        private String mCountTimeText = null;
-
-        private Calendar mCalendar;
         private Handler mRefreshInformationHandler = new Handler();
         private Runnable mRefreshInformationRunnable;
+        private ServiceUtil mServiceUtil;
+        private MilitaryInfo mMilitaryInfo;
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
-
-            mCalendar = Calendar.getInstance(new SimpleTimeZone(0, "GMT"));
 
             mRefreshInformationRunnable = new Runnable() {
                 @Override
@@ -97,12 +92,24 @@ public class CounterWidget extends AppWidgetProvider {
          */
         public RemoteViews buildUpdate(Context context) {
 
-            float login_percent;
-
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-            views.setTextViewText(R.id.textView2, "");
 
-            SharedPreferences settings = context.getSharedPreferences(MainActivity.PREF, 0);
+            mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
+            mServiceUtil = new ServiceUtil(mMilitaryInfo);
+
+            views.setTextViewText(R.id.until_logout_title, mServiceUtil.isLoggedIn() ? "距離返陽還剩下" : "距離入伍還剩下");
+            views.setTextViewText(R.id.until_logout_text, mServiceUtil.getRemainingDayWithString());
+            views.setTextViewText(R.id.login_percent_text, String.format(Locale.TAIWAN, "%.2f%%", mServiceUtil.getPercentage()));
+            views.setProgressBar(R.id.progressBar, 100, (int) mServiceUtil.getPercentage(), false);
+
+            views.setInt(R.id.widgetMainLayout, "setBackgroundColor", SettingsUtils.getWidgetBackgroundColor());
+            views.setTextColor(R.id.until_logout_title, SettingsUtils.getWidgetTitleColor());
+            views.setTextColor(R.id.logout_percent_title, SettingsUtils.getWidgetTitleColor());
+            views.setTextColor(R.id.until_logout_text, SettingsUtils.getWidgetContentColor());
+            views.setTextColor(R.id.login_percent_text, SettingsUtils.getWidgetContentColor());
+
+          /*
+            SharedPreferences settings = context.getSharedPreferences(MainActivity.LEGACY_PREF, 0);
             views.setInt(R.id.widgetMainLayout, "setBackgroundColor", settings.getInt(MainActivity.PREF_WIDGETBGCOLOR, Color.WHITE));
             views.setTextColor(R.id.until_logout_title, settings.getInt(MainActivity.PREF_WIDGETTITLECOLOR, 0xFF000000));
             views.setTextColor(R.id.until_logout_text, settings.getInt(MainActivity.PREF_WIDGETSUBTITLECOLOR, 0xFF3B5998));
@@ -112,61 +119,8 @@ public class CounterWidget extends AppWidgetProvider {
             mInDateTimeInMillis = settings.getLong(MainActivity.PREF_LOGINMILLIS, 0);
             mOutDateTimeInMillis = settings.getLong(MainActivity.PREF_LOGOUTMILLIS, 0);
 
-            /**
-             * 20130408 - 入伍倒數
-             */
-
-            if (mInDateTimeInMillis > System.currentTimeMillis()) {
-                diffInMillis = mInDateTimeInMillis - System.currentTimeMillis();
-                views.setTextViewText(R.id.until_logout_title, "距離入伍還剩下");
-            } else {
-                diffInMillis = mOutDateTimeInMillis - System.currentTimeMillis();
-                views.setTextViewText(R.id.until_logout_title, "距離返陽還剩下");
-            }
-
-            mCalendar.setTimeInMillis(diffInMillis);
-            StringBuilder buffer = new StringBuilder();
-
-            if (mInDateTimeInMillis <= System.currentTimeMillis()) {
-                if ((mCalendar.get(Calendar.YEAR) - 1970) != 0) {
-                    buffer.append(mCalendar.get(Calendar.YEAR) - 1970).append("年");
-                    buffer.append(mCalendar.get(Calendar.MONTH) + 1).append("個月");
-                    buffer.append(mCalendar.get(Calendar.DAY_OF_MONTH) - 1).append("天 ");
-                } else {
-                    buffer.append(mCalendar.get(Calendar.DAY_OF_YEAR) - 1).append("天 ");
-                }
-            } else {
-                buffer.append(mCalendar.get(Calendar.DAY_OF_YEAR) - 1).append("天 ");
-            }
-            buffer.append(pad(mCalendar.get(Calendar.HOUR_OF_DAY))).append(":");
-            buffer.append(pad(mCalendar.get(Calendar.MINUTE))).append(":");
-            buffer.append((pad(mCalendar.get(Calendar.SECOND))));
-            mCountTimeText = buffer.toString();
-
-            double login_passday = Calendar.getInstance().getTimeInMillis() - mInDateTimeInMillis;
-
-            login_percent = (float) ((login_passday / (mOutDateTimeInMillis - mInDateTimeInMillis)) * 100f);
-            String percentText = new DecimalFormat("#.##").format(login_percent);
-            if (login_percent >= 100) {
-                views.setTextViewText(R.id.login_percent_text, "100%");
-            } else if (login_percent <= 0) {
-                views.setTextViewText(R.id.login_percent_text, "0%");
-            } else {
-                views.setTextViewText(R.id.login_percent_text, percentText + "%");
-            }
-
-            views.setTextViewText(R.id.until_logout_text, mCountTimeText);
-            views.setProgressBar(R.id.progressBar, 100, (int) login_percent, false);
-
-            if (diffInMillis <= 0) {
-                views.setTextViewText(R.id.until_logout_text, "學長(`・ω・́)ゝ 你已經成功返陽了!");
-                views.setTextViewText(R.id.login_percent_text, "100%");
-            }
+            */
             return views;
-        }
-
-        private String pad(int c) {
-            return String.format(Locale.getDefault(), "%02d", c);
         }
     }
 }

@@ -19,13 +19,13 @@ public class MilitaryInfo {
 
     public static MilitaryInfo parse(String jsonString) {
         if (jsonString == null) {
-            return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), MainActivity.ServiceTime.ONE_YEAR, 30, DayTime).getJsonString(), MilitaryInfo.class);
+            return new Gson().fromJson(new MilitaryInfo(DateTime.now().getMillis(), ServiceTime.ONE_YEAR, 30, DayTime).getJsonString(), MilitaryInfo.class);
         } else {
             return new Gson().fromJson(jsonString, MilitaryInfo.class);
         }
     }
 
-    public MilitaryInfo(long loginMillis, MainActivity.ServiceTime serviceTime, int deleteDays, int periodType) {
+    public MilitaryInfo(long loginMillis, ServiceTime serviceTime, int deleteDays, int periodType) {
         begin = loginMillis;
         period = serviceTime.ordinal();
         discount = deleteDays;
@@ -57,7 +57,7 @@ public class MilitaryInfo {
         return this;
     }
 
-    public MilitaryInfo setPeriod(MainActivity.ServiceTime period) {
+    public MilitaryInfo setPeriod(ServiceTime period) {
         this.period = period.ordinal();
         return this;
     }
