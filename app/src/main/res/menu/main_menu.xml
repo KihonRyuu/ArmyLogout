@@ -1,0 +1,49 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/action_reorder"
+        android:icon="@drawable/ic_swap_vert_white_24dp"
+        android:orderInCategory="80"
+        android:title="排序"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_share_white_24dp"
+        android:orderInCategory="90"
+        android:title="@string/action_share"
+        app:showAsAction="ifRoom">
+
+    </item>
+
+    <item
+        android:id="@+id/action_change_widger_bgcolor"
+        android:orderInCategory="100"
+        android:title="@string/action_change_widget_bgcolor"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_changelog"
+        android:orderInCategory="100"
+        android:title="@string/action_changelog"
+        app:showAsAction="never" />
+
+    <!--
+    <item
+        android:id="@+id/action_connect_fb"
+        android:orderInCategory="120"
+        android:showAsAction=""
+        android:checkable="true"
+        android:title="@string/connect_fb">
+    </item>
+    -->
+    <item
+        android:id="@+id/action_about"
+        android:orderInCategory="100"
+        android:title="@string/about"
+        app:showAsAction="never" />
+
+</menu>
