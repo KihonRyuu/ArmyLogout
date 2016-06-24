@@ -7,7 +7,7 @@
         android:id="@+id/action_reorder"
         android:icon="@drawable/ic_swap_vert_white_24dp"
         android:orderInCategory="80"
-        android:title="Swap"
+        android:title="排序"
         app:showAsAction="always" />
 
     <item
