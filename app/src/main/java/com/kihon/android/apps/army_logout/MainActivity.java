@@ -732,6 +732,9 @@ public class MainActivity extends BaseAppCompatActivity
             case R.id.action_reorder:
                 startSupportActionMode(this);
                 return true;
+            case R.id.action_legacy_mode:
+                startActivity(new Intent(this, LegacyMainActivity.class));
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
