@@ -24,22 +24,20 @@ public class ServiceUtil {
     private final ServiceTime mServiceTime;
     private final DateTime mStartDateTime;
     private final int mCounterTextPeriodType;
+    private final MilitaryInfo mMilitaryInfo;
     private int mDiscountDays;
     private DateTime mStandLogoutDateTime;
     private DateTime mRealLogoutDateTime;
     private Period mPeriod;
 
-    private ServiceUtil(long startTimeInMillis, ServiceTime serviceTime, int discountDays, int periodType) {
-        mStartTimeInMillis = startTimeInMillis;
-        mServiceTime = serviceTime;
-        mDiscountDays = discountDays;
-        mCounterTextPeriodType = periodType;
-        mStartDateTime = new DateTime(startTimeInMillis);
-        setEndTime();
-    }
-
     public ServiceUtil(MilitaryInfo militaryInfo) {
-        this(militaryInfo.getBegin(), ServiceTime.values()[militaryInfo.getPeriod()], militaryInfo.getDiscount(), militaryInfo.getPeriodType());
+        mMilitaryInfo = militaryInfo;
+        mStartTimeInMillis = militaryInfo.getBegin();
+        mServiceTime = ServiceTime.values()[militaryInfo.getPeriod()];
+        mDiscountDays = militaryInfo.getDiscount();
+        mCounterTextPeriodType = militaryInfo.getPeriodType();
+        mStartDateTime = new DateTime(militaryInfo.getBegin());
+        setEndTime();
     }
 
     public long getStartTimeInMillis() {
@@ -93,6 +91,19 @@ public class ServiceUtil {
                 break;
             case TEN_MONTHS:
                 mStandLogoutDateTime = mStartDateTime.plusMonths(10);
+                break;
+            case CUSTOM:
+                CustomPeriod customPeriod = mMilitaryInfo.getCustomPeriod();
+                int year = customPeriod.getYear();
+                int monthOfYear = customPeriod.getMonthOfYear();
+                int dayOfMonth = customPeriod.getDayOfMonth();
+                mStandLogoutDateTime = mStartDateTime.plusYears(year)
+                                .plusMonths(monthOfYear)
+                                .plusDays(dayOfMonth);
+                String stringBuilder = (year == 0 ? "" : year + "年") +
+                        (monthOfYear == 0 ? "" : monthOfYear + "個月") +
+                        (dayOfMonth == 0 ? "" : dayOfMonth + "天");
+                mServiceTime.setDisplayText(stringBuilder);
                 break;
         }
         mRealLogoutDateTime = mStandLogoutDateTime.minusDays(getDiscount());
@@ -162,7 +173,7 @@ public class ServiceUtil {
     }
 
     public boolean isHundredDays() {
-        return Range.open(30, 100).contains(getRemainingPeriod(PeriodType.dayTime()).getDays());
+        return isLoggedIn() && Range.open(30, 100).contains(getRemainingPeriod(PeriodType.dayTime()).getDays());
     }
 
     public int getDiscountDays() {

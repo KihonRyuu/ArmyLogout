@@ -1,5 +1,38 @@
 package com.kihon.android.apps.army_logout;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.color.ColorChooserDialog;
+import com.afollestad.materialdialogs.internal.MDButton;
+import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
+import com.github.fcannizzaro.materialtip.MaterialTip;
+import com.github.fcannizzaro.materialtip.util.ButtonListener;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.CompositePermissionListener;
+import com.karumi.dexter.listener.single.PermissionListener;
+import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
+import com.kihon.android.apps.army_logout.settings.SettingsUtils;
+import com.rengwuxian.materialedittext.MaterialEditText;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -10,6 +43,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -22,7 +56,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
 import android.view.Gravity;
@@ -34,6 +70,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -42,36 +79,6 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.afollestad.materialdialogs.color.ColorChooserDialog;
-import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
-import com.github.fcannizzaro.materialtip.MaterialTip;
-import com.github.fcannizzaro.materialtip.util.ButtonListener;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.CompositePermissionListener;
-import com.karumi.dexter.listener.single.PermissionListener;
-import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
-import com.kihon.android.apps.army_logout.settings.SettingsUtils;
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
-
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,7 +98,9 @@ import tourguide.tourguide.Pointer;
 import tourguide.tourguide.Sequence;
 import tourguide.tourguide.ToolTip;
 
-public class MainActivity extends BaseAppCompatActivity implements OnStartDragListener, ActionMode.Callback, ColorChooserDialog.ColorCallback {
+public class MainActivity extends BaseAppCompatActivity
+        implements OnStartDragListener, ActionMode.Callback, ColorChooserDialog.ColorCallback,
+        ItemClickSupport.OnItemClickListener {
 
     private static final String TAG = "MainActivity";
 
@@ -107,13 +116,13 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
     @BindView(R.id.tip)
     MaterialTip mTip;
 
-    private Handler mRefreshInformationHandler = new Handler();
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private ServiceUtil mServiceUtil;
     private InfoAdapter mInfoAdapter;
-    private List<InfoItem> mData;
+    private List<InfoItem> mData = new ArrayList<>();
     private MilitaryInfo mMilitaryInfo;
     private ItemTouchHelper mTouchHelper;
-    private Runnable mRefreshInformationRunnable;
+    private Runnable mRunnable;
     private FirebaseAnalytics mFirebaseAnalytics;
     private ChainTourGuide mTourGuideHandler;
     private Sequence mSequence;
@@ -135,49 +144,24 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
         mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
 //        mRecyclerView.setItemAnimator(new FadeInAnimator(new OvershootInterpolator(1f)));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        ItemClickSupport
-                .addTo(mRecyclerView)
-                .setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-                    @Override
-                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                        onSettingsSelected(position, v);
-                    }
-                });
+        ItemClickSupport.addTo(mRecyclerView).setOnItemClickListener(this);
 
-        mFab.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
+        mInfoAdapter = new InfoAdapter(MainActivity.this, mData, MainActivity.this);
+        mRecyclerView.setAdapter(mInfoAdapter);
+        ItemTouchHelper.Callback callback = new InfoItemTouchHelperCallback(mInfoAdapter);
+        mTouchHelper = new ItemTouchHelper(callback);
+        mTouchHelper.attachToRecyclerView(mRecyclerView);
 
-        ChangeLog cl = new ChangeLog(this);
-//        if (cl.firstRun()) cl.getLogDialog().show();
-
-        mTracker.setScreenName(GA_EVENT_CATE_MAIN_LIST);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-
-        mRefreshInformationRunnable = new Runnable() {
+        mRunnable = new Runnable() {
             @Override
             public void run() {
                 mServiceUtil = new ServiceUtil(mMilitaryInfo);
 
                 if (!mServiceUtil.isIllegalDiscountValue()) mMilitaryInfo.setDiscount(30);
 
-                if (mInfoAdapter == null) {
-                    mData = new ArrayList<>();
-                    mInfoAdapter = new InfoAdapter(MainActivity.this, mData, MainActivity.this);
-                    mRecyclerView.setAdapter(mInfoAdapter);
-                    ItemTouchHelper.Callback callback = new InfoItemTouchHelperCallback(mInfoAdapter);
-                    mTouchHelper = new ItemTouchHelper(callback);
-                    mTouchHelper.attachToRecyclerView(mRecyclerView);
-                } else {
-                    mData.clear();
-                    mInfoAdapter.notifyDataSetChanged();
-                }
-
-                mInfoAdapter.setServiceUtil(mServiceUtil);
-
                 initDataSortByIndex();
+                mInfoAdapter.setServiceUtil(mServiceUtil);
+                mInfoAdapter.notifyDataSetChanged();
 
                 if (SettingsUtils.isFirstRun()) {
                     SettingsUtils.firstRun();
@@ -188,23 +172,28 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
                 }
 
                 //END
-                mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
-
+                mHandler.postDelayed(this, 1000);
             }
         };
+
+        ChangeLog cl = new ChangeLog(this);
+//        if (cl.firstRun()) cl.getLogDialog().show();
+
+        mTracker.setScreenName(GA_EVENT_CATE_MAIN_LIST);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mRefreshInformationHandler.post(mRefreshInformationRunnable);
+        mHandler.post(mRunnable);
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
-        mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
+        mHandler.removeCallbacks(mRunnable);
         SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
+        super.onPause();
     }
 
     @Override
@@ -214,13 +203,14 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void initDataSortByIndex() {
+    private synchronized void initDataSortByIndex() {
         int[] indexes = SettingsUtils.getInfoItemIndexes();
         InfoItem[] items = InfoItem.values();
         for (int i = 0; i < indexes.length; i++) {
             items[i].setOrder(indexes[i]);
         }
-        Collections.addAll(mData, InfoItem.values());
+        if (!mData.isEmpty()) mData.clear();
+        Collections.addAll(mData, items);
         Collections.sort(mData, new Comparator<InfoItem>() {
             @Override
             public int compare(InfoItem lhs, InfoItem rhs) {
@@ -228,10 +218,11 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
             }
         });
         if (!mServiceUtil.isHundredDays()) mData.remove(InfoItem.HundredDays);
-        mInfoAdapter.notifyItemRangeInserted(0, InfoItem.values().length);
+//        mInfoAdapter.notifyItemRangeInserted(0, InfoItem.values().length);
     }
 
-    private void onSettingsSelected(int position, View v) {
+    private synchronized void onSettingsSelected(int position, View v) {
+        if (position < 0) return;
         switch (mData.get(position)) {
             case LoginDate:
                 onClickLoginDate();
@@ -239,19 +230,89 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
             case Period:
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 for (int i = 0; i < ServiceTime.values().length; i++) {
-                    popupMenu.getMenu().add(0, i, 0, ServiceTime.values()[i].getDisplayText());
+                    if (ServiceTime.values()[i] == ServiceTime.CUSTOM) {
+                        popupMenu.getMenu().add(0, i, 0, "自訂 - " + mMilitaryInfo.getCustomPeriod().toDisplayString());
+                    } else {
+                        popupMenu.getMenu().add(0, i, 0, ServiceTime.values()[i].getDisplayText());
+                    }
                 }
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        mMilitaryInfo.setPeriod(item.getItemId());
-                        mRefreshInformationHandler.post(mRefreshInformationRunnable);
-                        mTracker.send(new HitBuilders.EventBuilder()
-                                .setCategory("military_info")
-                                .setAction("period")
-                                .setLabel(ServiceTime.values()[item.getItemId()].name())
-                                .build());
-                        if (mTourGuideHandler != null) mTourGuideHandler.next();
+                    public boolean onMenuItemClick(final MenuItem item) {
+                        if (ServiceTime.CUSTOM == ServiceTime.values()[item.getItemId()]) {
+                            MaterialDialog dialog = new MaterialDialog.Builder(MainActivity.this)
+                                    .title("自訂役期")
+                                    .customView(R.layout.dialog_custom_period, true)
+                                    .positiveText(R.string.ok)
+                                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                        @Override
+                                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                            MaterialEditText yearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.year);
+                                            MaterialEditText monthOfYearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.monthOfYear);
+                                            MaterialEditText dayOfMonthInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.dayOfMonth);
+
+                                            int year = MoreObjects.firstNonNull(Ints.tryParse(yearInput.getText().toString().trim()), 0);
+                                            int monthOfYear = MoreObjects.firstNonNull(Ints.tryParse(monthOfYearInput.getText().toString().trim()), 0);
+                                            int dayOfMonth = MoreObjects.firstNonNull(Ints.tryParse(dayOfMonthInput.getText().toString().trim()), 0);
+
+                                            CustomPeriod customPeriod = new CustomPeriod(year, monthOfYear, dayOfMonth);
+                                            mMilitaryInfo.setPeriod(item.getItemId());
+                                            mMilitaryInfo.setCustomPeriod(customPeriod);
+                                            updateRecyclerView();
+                                            mTracker.send(new HitBuilders.EventBuilder()
+                                                    .setCategory("military_info")
+                                                    .setAction("period")
+                                                    .setLabel(ServiceTime.values()[item.getItemId()].name() + "_" + customPeriod)
+                                                    .build());
+                                            if (mTourGuideHandler != null) mTourGuideHandler.next();
+                                        }
+                                    }).build();
+
+                            final MDButton positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
+
+                            final MaterialEditText yearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.year);
+                            final MaterialEditText monthOfYearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.monthOfYear);
+                            final MaterialEditText dayOfMonthInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.dayOfMonth);
+
+                            yearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getYear()));
+                            monthOfYearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getMonthOfYear()));
+                            dayOfMonthInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getDayOfMonth()));
+
+                            TextWatcher textWatcher = new TextWatcher() {
+                                @Override
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                }
+
+                                @Override
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                    int year = MoreObjects.firstNonNull(Ints.tryParse(yearInput.getText().toString().trim()), 0);
+                                    int monthOfYear = MoreObjects.firstNonNull(Ints.tryParse(monthOfYearInput.getText().toString().trim()), 0);
+                                    int dayOfMonth = MoreObjects.firstNonNull(Ints.tryParse(dayOfMonthInput.getText().toString().trim()), 0);
+                                    positiveAction.setEnabled(!(year == 0 & monthOfYear == 0 & dayOfMonth == 0));
+                                }
+
+                                @Override
+                                public void afterTextChanged(Editable s) {
+                                }
+                            };
+
+                            yearInput.addTextChangedListener(textWatcher);
+                            monthOfYearInput.addTextChangedListener(textWatcher);
+                            dayOfMonthInput.addTextChangedListener(textWatcher);
+
+                            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                            dialog.show();
+                            positiveAction.setEnabled(mMilitaryInfo.getCustomPeriod() != null);
+                        } else {
+                            mMilitaryInfo.setPeriod(item.getItemId());
+                            updateRecyclerView();
+                            mTracker.send(new HitBuilders.EventBuilder()
+                                    .setCategory("military_info")
+                                    .setAction("period")
+                                    .setLabel(ServiceTime.values()[item.getItemId()].name())
+                                    .build());
+                            if (mTourGuideHandler != null) mTourGuideHandler.next();
+                        }
                         return false;
                     }
                 });
@@ -302,6 +363,7 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
                 break;
             case CounterTimer:
                 mMilitaryInfo.switchPeriodType();
+                updateRecyclerView();
                 mTracker.send(new HitBuilders.EventBuilder()
                         .setCategory(GA_EVENT_CATE_MAIN_LIST)
                         .setAction(GA_EVENT_ACTION_CHANGE)
@@ -319,6 +381,11 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
             default:
                 break;
         }
+    }
+
+    private void updateRecyclerView() {
+        mHandler.removeCallbacks(mRunnable);
+        mHandler.post(mRunnable);
     }
 
     private void onClickLoginDate() {
@@ -734,6 +801,11 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
         SettingsUtils.setProgressBarColor(selectedColor);
     }
 
+    @Override
+    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+        onSettingsSelected(position, v);
+    }
+
     public static class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.BaseItemAnimateViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
 
         private LayoutInflater mLayoutInflater;
@@ -787,16 +859,13 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
                         ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getLoginDateString());
                         break;
                     case Period:
-                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil
-                                .getServiceTime()
-                                .getDisplayText());
+                        ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getServiceTime().getDisplayText());
                         break;
                     case LogoutDate:
                         ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRealLogoutDateString());
                         break;
                     case Discount:
-                        ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil
-                                .getDiscountDays()));
+                        ((ItemViewHolder) holder).subtitle.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
                         break;
                     case HundredDays:
                         ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getUntilHundredDaysRemainingDaysWithString());
@@ -806,8 +875,6 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
                                 .getTitle()
                                 .replace("退", "入"));
                         ((ItemViewHolder) holder).subtitle.setText(mServiceUtil.getRemainingDayWithString());
-                        break;
-                    case CounterProgressbar:
                         break;
                 }
                 ((ItemViewHolder) holder).handleView.setVisibility(isReorder ? View.VISIBLE : View.GONE);
@@ -908,6 +975,7 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
         public void onReorderMode(boolean value) {
             isReorder = value;
 //            notifyDataSetChanged();
+            notifyItemRangeChanged(0,mData.size());
         }
 
         @Override
@@ -1027,10 +1095,10 @@ public class MainActivity extends BaseAppCompatActivity implements OnStartDragLi
         public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
             switch (actionState) {
                 case ItemTouchHelper.ACTION_STATE_DRAG:
-                    mRefreshInformationHandler.removeCallbacks(mRefreshInformationRunnable);
+                    mHandler.removeCallbacks(mRunnable);
                     break;
                 case ItemTouchHelper.ACTION_STATE_IDLE:
-                    mRefreshInformationHandler.post(mRefreshInformationRunnable);
+                    updateRecyclerView();
                     if (viewHolder instanceof ItemTouchHelperViewHolder) {
                         ItemTouchHelperViewHolder itemViewHolder = (ItemTouchHelperViewHolder) viewHolder;
                         itemViewHolder.onItemSelected();
