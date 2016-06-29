@@ -22,7 +22,7 @@
     <item
         android:id="@+id/action_legacy_mode"
         android:orderInCategory="100"
-        android:title="舊版介面"
+        android:title="@string/legacy_mode"
         app:showAsAction="never" />
 
     <item

@@ -204,7 +204,7 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
                                             .setLabel(ServiceTime.values()[position].name() + "_" + customPeriod)
                                             .build());
 
-                                    mPeriodList.set(position, "自訂 - " + mMilitaryInfo.getCustomPeriod().toDisplayString());
+                                    mPeriodList.set(position, mMilitaryInfo.getCustomPeriod().toDisplayString() + " - 自訂");
                                     mServiceDayAdapter.notifyDataSetChanged();
                                 }
                             }).build();
@@ -215,9 +215,11 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
                     final MaterialEditText monthOfYearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.monthOfYear);
                     final MaterialEditText dayOfMonthInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.dayOfMonth);
 
-                    yearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getYear()));
-                    monthOfYearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getMonthOfYear()));
-                    dayOfMonthInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getDayOfMonth()));
+                    if (mMilitaryInfo.getCustomPeriod() != null) {
+                        yearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getYear()));
+                        monthOfYearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getMonthOfYear()));
+                        dayOfMonthInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getDayOfMonth()));
+                    }
 
                     TextWatcher textWatcher = new TextWatcher() {
                         @Override
@@ -263,8 +265,8 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
     private void initSpinnerList() {
         mPeriodList = new ArrayList<>();
         for (int i = 0; i < ServiceTime.values().length; i++) {
-            if (ServiceTime.values()[i] == ServiceTime.CUSTOM) {
-                mPeriodList.add("自訂 - " + mMilitaryInfo.getCustomPeriod().toDisplayString());
+            if (ServiceTime.values()[i] == ServiceTime.CUSTOM && mMilitaryInfo.getCustomPeriod() != null) {
+                mPeriodList.add(mMilitaryInfo.getCustomPeriod().toDisplayString() + " - 自訂");
             } else {
                 mPeriodList.add(ServiceTime.values()[i].getDisplayText());
             }
@@ -395,7 +397,7 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.removeItem(R.id.action_reorder);
-        menu.findItem(R.id.action_legacy_mode).setTitle("新版介面");
+        menu.findItem(R.id.action_legacy_mode).setTitle(R.string.recycler_view_mode);
         return true;
     }
 
