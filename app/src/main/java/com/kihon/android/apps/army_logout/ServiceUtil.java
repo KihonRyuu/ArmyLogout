@@ -147,7 +147,7 @@ public class ServiceUtil {
     private String getRemainingDayWithString(PeriodFormatter formatter, PeriodType periodType) {
         if (isLoggedIn())
             if (getRemainingPeriod(periodType).getMillis() < 0)
-                return "學長(`・ω・́)ゝ 你已經成功返陽了!";
+                return "報告學長(`・ω・́)ゝ 您已經返陽惹!";
             else
                 return formatter.print(getRemainingPeriod(periodType));
         else
