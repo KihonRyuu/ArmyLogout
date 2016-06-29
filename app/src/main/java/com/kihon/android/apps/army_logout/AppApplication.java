@@ -4,11 +4,14 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import com.crashlytics.android.Crashlytics;
 import com.karumi.dexter.Dexter;
 import com.kihon.android.apps.army_logout.settings.SettingsUtils;
 
 import android.app.Application;
 import android.support.v7.app.AppCompatDelegate;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by kihon on 2016/06/10.
@@ -41,6 +44,10 @@ public class AppApplication extends Application {
     @Override
     public void onCreate() {
         sInstance = this;
+        if (!BuildConfig.DEBUG) {
+            Fabric.with(this, new Crashlytics());
+            Crashlytics.setUserIdentifier(SettingsUtils.getDeviceId());
+        }
         super.onCreate();
 
         Dexter.initialize(this);
