@@ -37,15 +37,6 @@
         android:title="@string/action_changelog"
         app:showAsAction="never" />
 
-    <!--
-    <item
-        android:id="@+id/action_connect_fb"
-        android:orderInCategory="120"
-        android:showAsAction=""
-        android:checkable="true"
-        android:title="@string/connect_fb">
-    </item>
-    -->
     <item
         android:id="@+id/action_about"
         android:orderInCategory="100"

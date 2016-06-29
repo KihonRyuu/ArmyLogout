@@ -47,7 +47,10 @@ public class SettingsUtils {
     private static final String PREF_FIRST_RUN = "pref_first_run";
     private static final String PREF_FEED_BACK = "pref_feed_back";
     private static final String PREF_WELCOME_TEXT = "pref_welcome_text";
+    private static final String PREF_VIEW_MODE = "pref_view_mode";
 
+    public static final int VIEW_MODE_RECYCLER_VIEW = 0;
+    public static final int VIEW_MODE_LEGACY = 1;
 
     public static void setDeviceId(String deviceId) {
         sSharedPreferences.edit().putString(PREF_DEVICE_ID, deviceId).apply();
@@ -152,5 +155,13 @@ public class SettingsUtils {
 
     public static void setWelcomeText(String text) {
         sSharedPreferences.edit().putString(PREF_WELCOME_TEXT, text).apply();
+    }
+
+    public static void setViewMode(int mode) {
+        sSharedPreferences.edit().putInt(PREF_VIEW_MODE, mode).apply();
+    }
+
+    public static int getViewMode() {
+        return sSharedPreferences.getInt(PREF_VIEW_MODE, VIEW_MODE_RECYCLER_VIEW);
     }
 }

@@ -16,24 +16,23 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import org.joda.time.DateTime;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -56,8 +55,7 @@ import butterknife.OnClick;
 /**
  * Created by kihon on 2016/06/27.
  */
-public class LegacyMainActivity extends BaseAppCompatActivity implements
-        ColorChooserDialog.ColorCallback {
+public class LegacyMainActivity extends ArmyLogoutActivity {
 
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
@@ -96,74 +94,73 @@ public class LegacyMainActivity extends BaseAppCompatActivity implements
     @BindView(R.id.coordinator_layout)
     CoordinatorLayout mCoordinatorLayout;
 
-    private Handler mHandler = new Handler(Looper.getMainLooper());
-    private Runnable mRunnable;
     private ServiceUtil mServiceUtil;
-    private MilitaryInfo mMilitaryInfo;
-    private Tracker mTracker = AppApplication.getInstance().getDefaultTracker();
 
     private ArrayAdapter mServiceDayAdapter;
     private List<String> mPeriodList;
+    private MilitaryInfo mMilitaryInfo;
+    private Tracker mTracker = getTracker();
+
+    @Override
+    protected int getLayoutResource() {
+        return R.layout.content_main_legacy;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_main_legacy);
         ButterKnife.bind(this);
-        setSupportActionBar(mToolbar);
-        mToolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.md_black_1000));
+//        getToolbar().setTitleTextColor(ContextCompat.getColor(this, R.color.md_black_1000));
 
-        mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
-
-        mRunnable = new Runnable() {
-            @Override
-            public void run() {
-                mServiceUtil = new ServiceUtil(mMilitaryInfo);
-
-                mLoginDateBtn.setText(mServiceUtil.getLoginDateString());
-                mLogoutDateTextview.setText(mServiceUtil.getRealLogoutDateString());
-                mDeleteDayButton.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
-
-                if (mServiceUtil.isLoggedIn()) {
-                    mUntilLogoutTitleText.setText("距離退伍還剩下");
-                    mWelcomeUserText2.setText(String.format("你入伍已經%s天了嘿~ ", mServiceUtil.getPassedDay()));
-                } else {
-                    mBreakMonthBlock.setVisibility(View.GONE);
-                    mUntilLogoutTitleText.setText("距離入伍還剩下");
-                    mWelcomeUserText2.setText("準備好踏入陰間了嗎？");
-                }
-
-                mLoginProgressBar.setProgress((int) mServiceUtil.getPercentage());
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mLoginProgressBar.setProgressTintList(ColorStateList.valueOf(SettingsUtils.getProgressBarColor()));
-                } else {
-                    mLoginProgressBar.getProgressDrawable().setColorFilter(SettingsUtils.getProgressBarColor(), PorterDuff.Mode.SRC_IN);
-                }
-
-                mLoginPercent.setText(String.format(Locale.TAIWAN, "%.2f%%", mServiceUtil
-                        .getPercentage()));
-                mUntilLogoutDaysText.setText(mServiceUtil.getRemainingDayWithString());
-
-                if (mServiceUtil.isHundredDays()) {
-                    mBreakMonthBlock.setVisibility(View.VISIBLE);
-                    mBreakMonthText.setText(mServiceUtil.getUntilHundredDaysRemainingDaysWithString());
-                } else {
-                    mBreakMonthBlock.setVisibility(View.GONE);
-                }
-
-                if (mServiceUtil.getPercentage() >= 100.0f) {
-                    mWelcomeUserText2.setText("學長(`・ω・́)ゝ 你已經成功返陽了!");
-                    mUntilLogoutDaysText.setText("0天 00:00:00");
-                }
-
-                mWelcomeUserText.setText(SettingsUtils.getWelcomeText());
-
-                mHandler.postDelayed(this, 500);
-            }
-        };
+        mMilitaryInfo = getMilitaryInfo();
 
         initSpinnerList();
         initSpinner();
+    }
+
+    @Override
+    public void run() {
+        mServiceUtil = new ServiceUtil(getMilitaryInfo());
+
+        mLoginDateBtn.setText(mServiceUtil.getLoginDateString());
+        mLogoutDateTextview.setText(mServiceUtil.getRealLogoutDateString());
+        mDeleteDayButton.setText(String.format(Locale.TAIWAN, "%d天", mServiceUtil.getDiscountDays()));
+
+        if (mServiceUtil.isLoggedIn()) {
+            mUntilLogoutTitleText.setText("距離退伍還剩下");
+            mWelcomeUserText2.setText(String.format("你入伍已經%s天了嘿~ ", mServiceUtil.getPassedDay()));
+        } else {
+            mBreakMonthBlock.setVisibility(View.GONE);
+            mUntilLogoutTitleText.setText("距離入伍還剩下");
+            mWelcomeUserText2.setText("準備好踏入陰間了嗎？");
+        }
+
+        mLoginProgressBar.setProgress((int) mServiceUtil.getPercentage());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mLoginProgressBar.setProgressTintList(ColorStateList.valueOf(SettingsUtils.getProgressBarColor()));
+        } else {
+            mLoginProgressBar.getProgressDrawable().setColorFilter(SettingsUtils.getProgressBarColor(), PorterDuff.Mode.SRC_IN);
+        }
+
+        mLoginPercent.setText(String.format(Locale.TAIWAN, "%.2f%%", mServiceUtil
+                .getPercentage()));
+        mUntilLogoutDaysText.setText(mServiceUtil.getRemainingDayWithString());
+
+        if (mServiceUtil.isHundredDays()) {
+            mBreakMonthBlock.setVisibility(View.VISIBLE);
+            mBreakMonthText.setText(mServiceUtil.getUntilHundredDaysRemainingDaysWithString());
+        } else {
+            mBreakMonthBlock.setVisibility(View.GONE);
+        }
+
+        if (mServiceUtil.getPercentage() >= 100.0f) {
+            mWelcomeUserText2.setText("學長(`・ω・́)ゝ 你已經成功返陽了!");
+            mUntilLogoutDaysText.setText("0天 00:00:00");
+        }
+
+        mWelcomeUserText.setText(SettingsUtils.getWelcomeText());
+
+        getHandler().postDelayed(this, 500);
     }
 
     private void initSpinner() {
@@ -272,19 +269,6 @@ public class LegacyMainActivity extends BaseAppCompatActivity implements
                 mPeriodList.add(ServiceTime.values()[i].getDisplayText());
             }
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mHandler.post(mRunnable);
-    }
-
-    @Override
-    protected void onPause() {
-        mHandler.removeCallbacks(mRunnable);
-        SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
-        super.onPause();
     }
 
     @OnClick({R.id.welcome_user_text, R.id.login_date_btn, R.id.delete_day_button, R.id.login_progressBar, R.id.nokori_block})
@@ -408,12 +392,24 @@ public class LegacyMainActivity extends BaseAppCompatActivity implements
     }
 
     @Override
-    public void onColorSelection(@NonNull ColorChooserDialog dialog, @ColorInt int selectedColor) {
-        mTracker.send(new HitBuilders.EventBuilder()
-                .setCategory(MainActivity.GA_EVENT_CATE_MAIN_LIST)
-                .setAction(MainActivity.GA_EVENT_ACTION_CHANGE)
-                .setLabel("progressbar_color")
-                .build());
-        SettingsUtils.setProgressBarColor(selectedColor);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.removeItem(R.id.action_reorder);
+        menu.findItem(R.id.action_legacy_mode).setTitle("新版介面");
+        return true;
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_legacy_mode:
+                SettingsUtils.setViewMode(SettingsUtils.VIEW_MODE_RECYCLER_VIEW);
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 }
