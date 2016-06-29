@@ -13,6 +13,7 @@ public class MilitaryInfo {
     private int period;
     private int discount;
     private int periodType;
+    private CustomPeriod customPeriod;
 
     static final int DayTime = 0;
     static final int YearMonthDayTime = 1;
@@ -77,5 +78,13 @@ public class MilitaryInfo {
             periodType = YearMonthDayTime;
         else
             periodType = DayTime;
+    }
+
+    public void setCustomPeriod(CustomPeriod customPeriod) {
+        this.customPeriod = customPeriod;
+    }
+
+    public CustomPeriod getCustomPeriod() {
+        return customPeriod;
     }
 }
