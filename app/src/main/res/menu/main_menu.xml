@@ -20,6 +20,12 @@
     </item>
 
     <item
+        android:id="@+id/action_legacy_mode"
+        android:orderInCategory="100"
+        android:title="舊版介面"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_change_widger_bgcolor"
         android:orderInCategory="100"
         android:title="@string/action_change_widget_bgcolor"

@@ -1,20 +1,21 @@
 package com.kihon.android.apps.army_logout.settings;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import com.google.gson.Gson;
+
+import com.kihon.android.apps.army_logout.AppApplication;
+import com.kihon.android.apps.army_logout.InfoItem;
+import com.kihon.android.apps.army_logout.R;
+
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import com.google.gson.Gson;
-import com.kihon.android.apps.army_logout.AppApplication;
-import com.kihon.android.apps.army_logout.InfoItem;
-import com.kihon.android.apps.army_logout.R;
 
 import java.util.Arrays;
 
@@ -45,6 +46,7 @@ public class SettingsUtils {
     private static final String PREF_WIDGET_CONTENT_COLOR = "pref_widget_content_color";
     private static final String PREF_FIRST_RUN = "pref_first_run";
     private static final String PREF_FEED_BACK = "pref_feed_back";
+    private static final String PREF_WELCOME_TEXT = "pref_welcome_text";
 
 
     public static void setDeviceId(String deviceId) {
@@ -142,5 +144,13 @@ public class SettingsUtils {
 
     public static boolean isHelpFeedback() {
         return sSharedPreferences.getBoolean(PREF_FEED_BACK, true);
+    }
+
+    public static String getWelcomeText() {
+        return sSharedPreferences.getString(PREF_WELCOME_TEXT, "yo 弟兄!");
+    }
+
+    public static void setWelcomeText(String text) {
+        sSharedPreferences.edit().putString(PREF_WELCOME_TEXT, text).apply();
     }
 }
