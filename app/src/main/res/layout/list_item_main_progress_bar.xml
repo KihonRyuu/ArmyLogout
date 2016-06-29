@@ -70,7 +70,7 @@
                     android:id="@+id/login_progressBar"
                     style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"
                     android:layout_width="0dp"
-                    android:layout_height="20dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
@@ -81,7 +81,7 @@
                 <TextView
                     android:id="@+id/login_percent"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="26dp"
                     tools:text="%"
                     android:gravity="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"

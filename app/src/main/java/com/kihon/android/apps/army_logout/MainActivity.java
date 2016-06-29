@@ -104,8 +104,8 @@ public class MainActivity extends BaseAppCompatActivity
 
     private static final String TAG = "MainActivity";
 
-    private static final String GA_EVENT_CATE_MAIN_LIST = "main";
-    private static final String GA_EVENT_ACTION_CHANGE = "change";
+    static final String GA_EVENT_CATE_MAIN_LIST = "main";
+    static final String GA_EVENT_ACTION_CHANGE = "change";
 
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
@@ -137,7 +137,6 @@ public class MainActivity extends BaseAppCompatActivity
         FirebaseMessaging.getInstance().subscribeToTopic("global");
 
         setSupportActionBar(mToolbar);
-        transLegacyPref();
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setNestedScrollingEnabled(false);
@@ -186,6 +185,7 @@ public class MainActivity extends BaseAppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        transLegacyPref();
         mHandler.post(mRunnable);
     }
 
@@ -221,11 +221,11 @@ public class MainActivity extends BaseAppCompatActivity
 //        mInfoAdapter.notifyItemRangeInserted(0, InfoItem.values().length);
     }
 
-    private synchronized void onSettingsSelected(int position, View v) {
+    private synchronized void onItemClicked(int position, View v) {
         if (position < 0) return;
         switch (mData.get(position)) {
             case LoginDate:
-                onClickLoginDate();
+                showLoginDatePicker(mMilitaryInfo.getBegin());
                 break;
             case Period:
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
@@ -388,8 +388,8 @@ public class MainActivity extends BaseAppCompatActivity
         mHandler.post(mRunnable);
     }
 
-    private void onClickLoginDate() {
-        DateTime dateTime = new DateTime(mMilitaryInfo.getBegin());
+    private void showLoginDatePicker(long instant) {
+        DateTime dateTime = new DateTime(instant);
         int year = dateTime.getYear();
         int monthOfYear = dateTime.getMonthOfYear() - 1;
         int dayOfMonth = dateTime.getDayOfMonth();
@@ -806,7 +806,7 @@ public class MainActivity extends BaseAppCompatActivity
 
     @Override
     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-        onSettingsSelected(position, v);
+        onItemClicked(position, v);
     }
 
     public static class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.BaseItemAnimateViewHolder> implements ItemTouchHelperAdapter, ItemTouchHelperViewHolder {
