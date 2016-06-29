@@ -26,6 +26,14 @@
         <item name="android:actionModeStyle">@style/ActionMode</item>-->
     </style>
 
+    <style name="AppTheme.Legacy" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+
     <style name="ActionMode">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="android:height">?attr/actionBarSize</item>

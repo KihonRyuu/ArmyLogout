@@ -1,20 +1,21 @@
 package com.kihon.android.apps.army_logout.settings;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import com.google.gson.Gson;
+
+import com.kihon.android.apps.army_logout.AppApplication;
+import com.kihon.android.apps.army_logout.InfoItem;
+import com.kihon.android.apps.army_logout.R;
+
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import com.google.gson.Gson;
-import com.kihon.android.apps.army_logout.AppApplication;
-import com.kihon.android.apps.army_logout.InfoItem;
-import com.kihon.android.apps.army_logout.R;
 
 import java.util.Arrays;
 
@@ -45,7 +46,11 @@ public class SettingsUtils {
     private static final String PREF_WIDGET_CONTENT_COLOR = "pref_widget_content_color";
     private static final String PREF_FIRST_RUN = "pref_first_run";
     private static final String PREF_FEED_BACK = "pref_feed_back";
+    private static final String PREF_WELCOME_TEXT = "pref_welcome_text";
+    private static final String PREF_VIEW_MODE = "pref_view_mode";
 
+    public static final int VIEW_MODE_RECYCLER_VIEW = 0;
+    public static final int VIEW_MODE_LEGACY = 1;
 
     public static void setDeviceId(String deviceId) {
         sSharedPreferences.edit().putString(PREF_DEVICE_ID, deviceId).apply();
@@ -142,5 +147,21 @@ public class SettingsUtils {
 
     public static boolean isHelpFeedback() {
         return sSharedPreferences.getBoolean(PREF_FEED_BACK, true);
+    }
+
+    public static String getWelcomeText() {
+        return sSharedPreferences.getString(PREF_WELCOME_TEXT, "yo 弟兄!");
+    }
+
+    public static void setWelcomeText(String text) {
+        sSharedPreferences.edit().putString(PREF_WELCOME_TEXT, text).apply();
+    }
+
+    public static void setViewMode(int mode) {
+        sSharedPreferences.edit().putInt(PREF_VIEW_MODE, mode).apply();
+    }
+
+    public static int getViewMode() {
+        return sSharedPreferences.getInt(PREF_VIEW_MODE, VIEW_MODE_RECYCLER_VIEW);
     }
 }

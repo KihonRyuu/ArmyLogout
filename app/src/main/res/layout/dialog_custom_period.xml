@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_margin="16dp"
+             android:orientation="horizontal">
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/year"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:ems="3"
+        android:gravity="center"
+        android:hint="年"
+        android:inputType="number"
+        android:maxLength="2"
+        app:met_floatingLabel="highlight"
+        app:met_primaryColor="?colorAccent"
+        tools:text="11"/>
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/monthOfYear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:ems="3"
+        android:gravity="center"
+        android:hint="月"
+        android:inputType="number"
+        android:maxLength="2"
+        app:met_floatingLabel="highlight"
+        app:met_primaryColor="?colorAccent"/>
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/dayOfMonth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:ems="3"
+        android:gravity="center"
+        android:hint="天"
+        android:inputType="number"
+        android:maxLength="2"
+        app:met_floatingLabel="highlight"
+        app:met_primaryColor="?colorAccent"/>
+
+</FrameLayout>

@@ -59,4 +59,7 @@
     <string name="md_error_label">錯誤</string>
     <string name="md_presets_label">預設</string>
 
+    <string name="recycler_view_mode">列表模式</string>
+    <string name="legacy_mode">看板模式</string>
+
 </resources>

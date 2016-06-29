@@ -1,6 +1,6 @@
 <resources>
     <color name="sectionSeparatorColour">#33B5E5</color>
-    <color name="com_facebook_blue">#2979ff</color>
+    <color name="com_facebook_blue">#ff3b5998</color>
 
     <color name="colorPrimary">#00BCD4</color>
     <color name="colorPrimaryDark">#0097A7</color>

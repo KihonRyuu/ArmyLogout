@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -41,41 +42,40 @@ public class CounterWidget extends AppWidgetProvider {
         context.startService(new Intent(context, UpdateService.class));
     }
 
-
     public static class UpdateService extends Service {
 
         private static final String TAG = "UpdateService";
 
-        private Handler mRefreshInformationHandler = new Handler();
-        private Runnable mRefreshInformationRunnable;
+        private Handler mHandler = new Handler(Looper.getMainLooper());
+        private Runnable mRunnable;
         private ServiceUtil mServiceUtil;
         private MilitaryInfo mMilitaryInfo;
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
 
-            mRefreshInformationRunnable = new Runnable() {
+            mRunnable = new Runnable() {
                 @Override
                 public void run() {
 
                     // Build the widget update for today
                     RemoteViews updateViews = buildUpdate(UpdateService.this);
                     Intent intent = new Intent(UpdateService.this, MainActivity.class);
-                    PendingIntent pendingIntent = PendingIntent.getActivity(UpdateService.this, 0, intent, 0);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(UpdateService.this, (int) System.currentTimeMillis(), intent, 0);
                     updateViews.setOnClickPendingIntent(R.id.widgetMainLayout, pendingIntent);
-                    Log.v(TAG, "update built");
+//                    Log.v(TAG, "update built");
 
                     // Push update for this widget to the home screen
                     ComponentName thisWidget = new ComponentName(UpdateService.this, CounterWidget.class);
                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this);
                     appWidgetManager.updateAppWidget(thisWidget, updateViews);
-                    Log.v(TAG, "widget updated");
+//                    Log.v(TAG, "widget updated");
 
-                    mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
+                    mHandler.postDelayed(this, 650);
                 }
             };
 
-            mRefreshInformationHandler.postDelayed(mRefreshInformationRunnable, 500);
+            mHandler.post(mRunnable);
 
             return START_STICKY;
         }
