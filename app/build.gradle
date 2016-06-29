@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'android-apt'
+apply plugin: 'io.fabric'
 
 def getDate() {
     def date = new Date()
@@ -101,6 +102,10 @@ dependencies {
     compile 'com.github.fcannizzaro:material-tip:1.0.5'
     compile 'com.sromku:simple-storage:1.2.0'
     compile 'com.rengwuxian.materialedittext:library:2.1.4'
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.7@aar') {
+        transitive = true;
+    }
 }
 
 apply plugin: 'com.google.gms.google-services'
