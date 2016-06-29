@@ -170,7 +170,7 @@ public class MainActivity extends ArmyLogoutActivity
             case Period:
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 for (int i = 0; i < ServiceTime.values().length; i++) {
-                    if (ServiceTime.values()[i] == ServiceTime.CUSTOM) {
+                    if (ServiceTime.values()[i] == ServiceTime.CUSTOM && mMilitaryInfo.getCustomPeriod() != null) {
                         popupMenu.getMenu().add(0, i, 0, "自訂 - " + mMilitaryInfo.getCustomPeriod().toDisplayString());
                     } else {
                         popupMenu.getMenu().add(0, i, 0, ServiceTime.values()[i].getDisplayText());
@@ -214,9 +214,11 @@ public class MainActivity extends ArmyLogoutActivity
                             final MaterialEditText monthOfYearInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.monthOfYear);
                             final MaterialEditText dayOfMonthInput = (MaterialEditText) dialog.getCustomView().findViewById(R.id.dayOfMonth);
 
-                            yearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getYear()));
-                            monthOfYearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getMonthOfYear()));
-                            dayOfMonthInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getDayOfMonth()));
+                            if (mMilitaryInfo.getCustomPeriod() != null) {
+                                yearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getYear()));
+                                monthOfYearInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getMonthOfYear()));
+                                dayOfMonthInput.setText(String.valueOf(mMilitaryInfo.getCustomPeriod().getDayOfMonth()));
+                            }
 
                             TextWatcher textWatcher = new TextWatcher() {
                                 @Override

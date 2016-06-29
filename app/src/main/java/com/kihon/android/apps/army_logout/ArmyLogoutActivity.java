@@ -47,7 +47,8 @@ import java.io.FileOutputStream;
 /**
  * Created by kihon on 2016/06/29.
  */
-public abstract class ArmyLogoutActivity extends BaseAppCompatActivity implements Runnable , ColorChooserDialog.ColorCallback{
+public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
+        implements Runnable, ColorChooserDialog.ColorCallback {
 
     private Toolbar mToolbar;
     private ProgressBar mProgressBar;
@@ -324,6 +325,11 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity implement
     @Override
     protected void onPause() {
         mHandler.removeCallbacks(this);
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory("view")
+                .setAction("mode")
+                .setLabel(SettingsUtils.getViewMode() == SettingsUtils.VIEW_MODE_RECYCLER_VIEW ? "New" : "Legacy")
+                .build());
         SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
         super.onPause();
     }
