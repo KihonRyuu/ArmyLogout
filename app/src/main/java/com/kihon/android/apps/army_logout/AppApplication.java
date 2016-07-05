@@ -5,6 +5,7 @@ import com.google.android.gms.analytics.Tracker;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
 import com.karumi.dexter.Dexter;
 import com.kihon.android.apps.army_logout.settings.SettingsUtils;
 
@@ -46,6 +47,7 @@ public class AppApplication extends Application {
         sInstance = this;
         if (!BuildConfig.DEBUG) {
             Fabric.with(this, new Crashlytics());
+            Fabric.with(this, new Answers());
             Crashlytics.setUserIdentifier(SettingsUtils.getDeviceId());
         }
         super.onCreate();
