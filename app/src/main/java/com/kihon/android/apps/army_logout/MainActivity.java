@@ -99,7 +99,7 @@ public class MainActivity extends ArmyLogoutActivity
     private InfoAdapter mInfoAdapter;
     private List<InfoItem> mData = new ArrayList<>();
     private ItemTouchHelper mTouchHelper;
-    private FirebaseAnalytics mFirebaseAnalytics;
+    private FirebaseAnalytics mFirebaseAnalytics = AppApplication.getInstance().getFirebaseAnalytics();
     private ChainTourGuide mTourGuideHandler;
     private Sequence mSequence;
     private Tracker mTracker = AppApplication.getInstance().getDefaultTracker();
