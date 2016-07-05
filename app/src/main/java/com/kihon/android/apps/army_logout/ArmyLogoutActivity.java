@@ -141,12 +141,12 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
 
     @Override
     public void onColorSelection(@NonNull ColorChooserDialog dialog, @ColorInt int selectedColor) {
+        SettingsUtils.setProgressBarColor(selectedColor);
         mTracker.send(new HitBuilders.EventBuilder()
                 .setCategory(MainActivity.GA_EVENT_CATE_MAIN_LIST)
                 .setAction(MainActivity.GA_EVENT_ACTION_CHANGE)
                 .setLabel("progressbar_color")
                 .build());
-        SettingsUtils.setProgressBarColor(selectedColor);
     }
 
     @Override
