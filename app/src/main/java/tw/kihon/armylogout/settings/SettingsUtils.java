@@ -6,9 +6,6 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import com.google.gson.Gson;
 
-import tw.kihon.armylogout.AppApplication;
-import tw.kihon.armylogout.InfoItem;
-
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
@@ -17,6 +14,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.util.Arrays;
+
+import tw.kihon.armylogout.AppApplication;
+import tw.kihon.armylogout.InfoItem;
 
 public class SettingsUtils {
 
@@ -44,6 +44,7 @@ public class SettingsUtils {
     private static final String PREF_WIDGET_TITLE_COLOR = "pref_widget_title_color";
     private static final String PREF_WIDGET_CONTENT_COLOR = "pref_widget_content_color";
     private static final String PREF_FIRST_RUN = "pref_first_run";
+    private static final String PREF_FIRST_PHOTO_SHARE = "pref_first_photo_share";
     private static final String PREF_FEED_BACK = "pref_feed_back";
     private static final String PREF_WELCOME_TEXT = "pref_welcome_text";
     private static final String PREF_VIEW_MODE = "pref_view_mode";
@@ -138,6 +139,14 @@ public class SettingsUtils {
 
     public static boolean isFirstRun() {
         return sSharedPreferences.getBoolean(PREF_FIRST_RUN, true);
+    }
+
+    public static void firstPhotoShare() {
+        sSharedPreferences.edit().putBoolean(PREF_FIRST_PHOTO_SHARE, false).apply();
+    }
+
+    public static boolean isPhotoShare() {
+        return sSharedPreferences.getBoolean(PREF_FIRST_PHOTO_SHARE, true);
     }
 
     public static void feedback() {

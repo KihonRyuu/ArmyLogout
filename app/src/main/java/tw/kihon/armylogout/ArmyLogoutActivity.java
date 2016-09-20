@@ -208,8 +208,21 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                         .title(R.string.about_app_name)
                         .content(content)
                         .positiveText(R.string.ok)
+                        .negativeText("更新日誌")
                         .neutralText("FB粉專")
                         .neutralColorRes(R.color.com_facebook_blue)
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                mTracker.send(new HitBuilders.EventBuilder()
+                                        .setCategory("menu")
+                                        .setAction("show")
+                                        .setLabel("changelog")
+                                        .build());
+                                ChangeLog cl = new ChangeLog(ArmyLogoutActivity.this);
+                                cl.getFullLogDialog().show();
+                            }
+                        })
                         .onNeutral(new MaterialDialog.SingleButtonCallback() {
                             @Override
                             public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
@@ -219,15 +232,6 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                         })
                         .show();
 
-                return true;
-            case R.id.action_changelog:
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("menu")
-                        .setAction("show")
-                        .setLabel("changelog")
-                        .build());
-                ChangeLog cl = new ChangeLog(this);
-                cl.getFullLogDialog().show();
                 return true;
             case R.id.action_change_widger_bgcolor:
                 mTracker.send(new HitBuilders.EventBuilder()

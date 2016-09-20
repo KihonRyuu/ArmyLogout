@@ -114,21 +114,25 @@ public class PhotoShareActivity extends tw.kihon.armylogout.ArmyLogoutActivity {
             @Override
             public void onImageLoaded() {
                 mMenu.findItem(R.id.action_share).setEnabled(true);
-                Tooltip.make(PhotoShareActivity.this,
-                        new Tooltip.Builder()
-                                .anchor(mPostScreen, Tooltip.Gravity.CENTER)
-                                .closePolicy(new Tooltip.ClosePolicy()
-                                        .insidePolicy(true, false)
-                                        .outsidePolicy(true, false), 3000)
-                                .activateDelay(800)
-                                .showDelay(300)
-                                .text("可縮放移動")
-                                .maxWidth(500)
-                                .withArrow(true)
-                                .withOverlay(true)
-                                .floatingAnimation(Tooltip.AnimationBuilder.DEFAULT)
-                                .build()
-                ).show();
+
+                if (SettingsUtils.isPhotoShare()) {
+                    SettingsUtils.firstPhotoShare();
+                    Tooltip.make(PhotoShareActivity.this,
+                            new Tooltip.Builder()
+                                    .anchor(mPostScreen, Tooltip.Gravity.CENTER)
+                                    .closePolicy(new Tooltip.ClosePolicy()
+                                            .insidePolicy(true, false)
+                                            .outsidePolicy(true, false), 3000)
+                                    .activateDelay(800)
+                                    .showDelay(300)
+                                    .text("可縮放移動")
+                                    .maxWidth(500)
+                                    .withArrow(true)
+                                    .withOverlay(true)
+                                    .floatingAnimation(Tooltip.AnimationBuilder.DEFAULT)
+                                    .build()
+                    ).show();
+                }
             }
 
             @Override
