@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">國軍弟兄返陽倒數計時器</string>
-    <string name="app_name_short">國軍返陽倒數計時</string>
+    <string name="app_name_short">國軍返陽倒數</string>
     <string name="widget_name">國軍返陽倒數</string>
     <string name="action_share">分享</string>
     <string name="action_share_fb">Facebook</string>
@@ -61,5 +61,6 @@
 
     <string name="recycler_view_mode">列表模式</string>
     <string name="legacy_mode">看板模式</string>
+    <string name="photo_share">照片分享</string>
 
 </resources>

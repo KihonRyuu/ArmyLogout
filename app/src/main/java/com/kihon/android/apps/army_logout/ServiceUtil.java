@@ -140,6 +140,14 @@ public class ServiceUtil {
         return getRemainingDayWithString(formatter, getCounterTextPeriodType());
     }
 
+    public String getRemainingYearDays() {
+        PeriodFormatter formatter = new PeriodFormatterBuilder()
+                .appendYears().appendSuffix("年").appendSeparator(" ")
+                .printZeroAlways().appendDays()
+                .toFormatter();
+        return formatter.print(getRemainingPeriod(PeriodType.yearDayTime()).toPeriod());
+    }
+
     private PeriodType getCounterTextPeriodType() {
         return mCounterTextPeriodType == MilitaryInfo.DayTime ? PeriodType.dayTime() : PeriodType.yearMonthDayTime();
     }

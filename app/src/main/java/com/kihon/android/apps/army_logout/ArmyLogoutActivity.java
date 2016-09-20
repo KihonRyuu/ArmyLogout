@@ -8,14 +8,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.CompositePermissionListener;
-import com.karumi.dexter.listener.single.PermissionListener;
-import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
 import com.kihon.android.apps.army_logout.settings.SettingsUtils;
 
 import org.joda.time.DateTime;
@@ -30,6 +22,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -38,11 +31,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by kihon on 2016/06/29.
@@ -50,13 +46,18 @@ import java.io.FileOutputStream;
 public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
         implements Runnable, ColorChooserDialog.ColorCallback {
 
+    protected static final int REQUEST_SELECT_PHOTO = 100;
+    protected static final int REQUEST_TAKE_PHOTO = 101;
+
     private Toolbar mToolbar;
     private ProgressBar mProgressBar;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Tracker mTracker = AppApplication.getInstance().getDefaultTracker();
 
-    private MilitaryInfo mMilitaryInfo;
+    private MilitaryInfo mInfo;
     private FirebaseAnalytics mFirebaseAnalytics;
+
+    private Uri mFileUri;
 
     @LayoutRes
     abstract protected int getLayoutResource();
@@ -128,14 +129,14 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                     break;
             }
 
-            mMilitaryInfo = new MilitaryInfo(loginMillis, serviceTime, deleteDays, MilitaryInfo.DayTime);
-            SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
+            mInfo = new MilitaryInfo(loginMillis, serviceTime, deleteDays, MilitaryInfo.DayTime);
+            SettingsUtils.setMilitaryInfo(mInfo.getJsonString());
             getSharedPreferences(LegacyPref.LEGACY_PREF, Context.MODE_PRIVATE)
                     .edit()
                     .clear()
                     .apply();
         } else {
-            mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
+            mInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
         }
     }
 
@@ -162,46 +163,40 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_take_photo:
+                /*new MaterialDialog.Builder(this)
+                        .items(new CharSequence[]{"開啟相機", "選擇照片"})
+                        .itemsCallback(new MaterialDialog.ListCallback() {
+                            @Override
+                            public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                                if (which == 0) {
+                                    try {
+                                        takePic();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    pickPic();
+                                }
+                            }
+                        })
+                        .show();*/
+                try {
+                    takePic();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_pick_photo:
+                pickPic();
+                return true;
             case R.id.action_share:
-                PermissionListener listener = new PermissionListener() {
-                    @Override
-                    public void onPermissionGranted(PermissionGrantedResponse response) {
-                        captureScreen();
-                        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SHARE, null);
-                        mTracker.send(new HitBuilders.EventBuilder()
-                                .setCategory("feature")
-                                .setAction("share")
-                                .setLabel("granted")
-                                .build());
-                    }
-
-                    @Override
-                    public void onPermissionDenied(PermissionDeniedResponse response) {
-                        mTracker.send(new HitBuilders.EventBuilder()
-                                .setCategory("feature")
-                                .setAction("share")
-                                .setLabel("denied")
-                                .build());
-                    }
-
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-                        token.continuePermissionRequest();
-                        mTracker.send(new HitBuilders.EventBuilder()
-                                .setCategory("feature")
-                                .setAction("share")
-                                .setLabel("continue")
-                                .build());
-                    }
-                };
-
-                ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
-                PermissionListener snackbarPermissionListener = SnackbarOnDeniedPermissionListener.Builder
-                        .with(rootView, "需要存取空間的權限")
-                        .withOpenSettingsButton("設定")
-                        .build();
-
-                Dexter.checkPermission(new CompositePermissionListener(listener, snackbarPermissionListener), android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                captureScreen();
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("feature")
+                        .setAction("share")
+                        .setLabel("board")
+                        .build());
                 return true;
             case R.id.action_about:
                 mTracker.send(new HitBuilders.EventBuilder()
@@ -305,7 +300,7 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
     }
 
     public MilitaryInfo getMilitaryInfo() {
-        return mMilitaryInfo;
+        return mInfo;
     }
 
     public Handler getHandler() {
@@ -330,8 +325,50 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                 .setAction("mode")
                 .setLabel(SettingsUtils.getViewMode() == SettingsUtils.VIEW_MODE_RECYCLER_VIEW ? "New" : "Legacy")
                 .build());
-        SettingsUtils.setMilitaryInfo(mMilitaryInfo.getJsonString());
+        SettingsUtils.setMilitaryInfo(mInfo.getJsonString());
         super.onPause();
+    }
+
+    protected void pickPic() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "使用..."), REQUEST_SELECT_PHOTO);
+    }
+
+    protected void takePic() throws IOException {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) == null) return;
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.TAIWAN).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = AppApplication.getInstance().getExternalCacheDir();
+        File imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = Uri.fromFile(imageFile));
+        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) return;
+        Uri uri;
+        switch (requestCode) {
+            case REQUEST_SELECT_PHOTO:
+                uri = data.getData();
+                break;
+            case REQUEST_TAKE_PHOTO:
+                uri = mFileUri;
+                break;
+            default:
+                return;
+        }
+        Intent intent = new Intent(ArmyLogoutActivity.this, PhotoShareActivity.class)
+                .putExtra("Uri", uri);
+        startActivity(intent);
+    }
+
+    protected Uri getFileUri() {
+        return mFileUri;
     }
 
 }

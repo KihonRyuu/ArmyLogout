@@ -139,6 +139,7 @@ public class MainActivity extends ArmyLogoutActivity
 
         mMilitaryInfo = getMilitaryInfo();
 
+        mTracker.enableAdvertisingIdCollection(true);
         mTracker.setScreenName(GA_EVENT_CATE_MAIN_LIST);
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }

@@ -4,18 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <!-- CAMERA -->
-    <!--<uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />-->
 
     <application
-        android:name=".AppApplication"
+        android:name="com.kihon.android.apps.army_logout.AppApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -23,7 +14,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.kihon.android.apps.army_logout.MainActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name_short"
             android:launchMode="singleTask"
@@ -38,7 +29,7 @@
         </activity>
 
         <activity
-            android:name=".WidgetSettingsActivity"
+            android:name="com.kihon.android.apps.army_logout.WidgetSettingsActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/action_change_widget_bgcolor"
             android:launchMode="singleTask"
@@ -47,7 +38,7 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".LegacyMainActivity"
+            android:name="com.kihon.android.apps.army_logout.LegacyMainActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name_short"
             android:launchMode="singleTask"
@@ -55,10 +46,19 @@
             android:theme="@style/AppTheme.Legacy"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name="com.kihon.android.apps.army_logout.PhotoShareActivity"
+            android:configChanges="orientation|screenSize"
+            android:label=""
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
+
         <!--<activity android:name="com.facebook.LoginActivity" />-->
 
         <receiver
-            android:name=".CounterWidget"
+            android:name="com.kihon.android.apps.army_logout.CounterWidget"
             android:label="@string/widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -69,15 +69,15 @@
                 android:resource="@xml/counter_widget_info" />
         </receiver>
 
-        <service android:name=".CounterWidget$UpdateService" />
+        <service android:name="com.kihon.android.apps.army_logout.CounterWidget$UpdateService" />
 
-        <service android:name=".fcm.FirebaseMessagingService">
+        <service android:name="com.kihon.android.apps.army_logout.fcm.FirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <service android:name=".fcm.FirebaseInstanceIdService">
+        <service android:name="com.kihon.android.apps.army_logout.fcm.FirebaseInstanceIdService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>

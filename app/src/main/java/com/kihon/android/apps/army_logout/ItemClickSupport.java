@@ -5,16 +5,8 @@ import android.view.View;
 
 /*
   Source: http://www.littlerobots.nl/blog/Handle-Android-RecyclerView-Clicks/
-  USAGE:
-   
-  tw.com.cybertan.cyberjoyn.ItemClickSupport.addTo(mRecyclerView).setOnItemClickListener(new tw.com.cybertan.cyberjoyn.ItemClickSupport.OnItemClickListener() {
-      @Override
-      public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-          // do it
-      }
-  });
-
 */
+
 public class ItemClickSupport {
     private final RecyclerView mRecyclerView;
     private OnItemClickListener mOnItemClickListener;
