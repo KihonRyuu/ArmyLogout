@@ -8,6 +8,14 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.CompositePermissionListener;
+import com.karumi.dexter.listener.single.PermissionListener;
+import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -25,11 +33,13 @@ import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import java.io.File;
@@ -40,6 +50,8 @@ import java.util.Date;
 import java.util.Locale;
 
 import tw.kihon.armylogout.settings.SettingsUtils;
+
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 /**
  * Created by kihon on 2016/06/29.
@@ -177,12 +189,51 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                 }
                 return true;
             case R.id.action_pick_photo:
-                pickPic();
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("feature")
-                        .setAction("photo_share")
-                        .setLabel("pick_photo")
-                        .build());
+                PermissionListener listener = new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        pickPic();
+                        mTracker.send(new HitBuilders.EventBuilder()
+                                .setCategory("feature")
+                                .setAction("photo_share")
+                                .setLabel("pick_photo")
+                                .build());
+                        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SHARE, null);
+                        mTracker.send(new HitBuilders.EventBuilder()
+                                .setCategory("feature")
+                                .setAction("photo_share")
+                                .setLabel("granted")
+                                .build());
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        mTracker.send(new HitBuilders.EventBuilder()
+                                .setCategory("feature")
+                                .setAction("photo_share")
+                                .setLabel("denied")
+                                .build());
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                        mTracker.send(new HitBuilders.EventBuilder()
+                                .setCategory("feature")
+                                .setAction("photo_share")
+                                .setLabel("continue")
+                                .build());
+                    }
+                };
+
+                ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+                PermissionListener snackbarPermissionListener = SnackbarOnDeniedPermissionListener.Builder
+                        .with(rootView, "需要存取空間的權限")
+                        .withOpenSettingsButton("設定")
+                        .build();
+
+                Dexter.checkPermission(new CompositePermissionListener(listener, snackbarPermissionListener), WRITE_EXTERNAL_STORAGE);
+
                 return true;
             case R.id.action_share:
                 captureScreen();
@@ -341,7 +392,8 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = AppApplication.getInstance().getExternalCacheDir();
         File imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = Uri.fromFile(imageFile));
+//        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = Uri.fromFile(imageFile));
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", imageFile));
         startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
     }
 

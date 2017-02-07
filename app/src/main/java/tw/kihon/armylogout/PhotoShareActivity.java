@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.media.ExifInterface;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 
 import butterknife.BindView;
@@ -39,8 +41,10 @@ import tw.kihon.armylogout.settings.SettingsUtils;
 
 /**
  * Created by kihon on 2016/09/09.
+ *
+ * Need release at 2016-09-20....
  */
-public class PhotoShareActivity extends tw.kihon.armylogout.ArmyLogoutActivity {
+public class PhotoShareActivity extends ArmyLogoutActivity {
 
     private static final String TAG = "PhotoShareActivity";
 
@@ -78,6 +82,7 @@ public class PhotoShareActivity extends tw.kihon.armylogout.ArmyLogoutActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ButterKnife.bind(this);
+        getToolbar().setTitle("");
 
        /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
@@ -99,12 +104,80 @@ public class PhotoShareActivity extends tw.kihon.armylogout.ArmyLogoutActivity {
         Drawable background = mINF.getBackground();
         background.setAlpha(40);
 
-        loadImage((Uri) getIntent().getParcelableExtra("Uri"));
+        Intent intent = getIntent();
+        getIntentData(intent);
+
+    }
+
+    private void getIntentData(Intent intent) {
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if (type.startsWith("image/")) {
+                handleSendImage(intent);
+                AppApplication.getInstance().getDefaultTracker().send(new HitBuilders.EventBuilder()
+                        .setCategory("feature")
+                        .setAction("photo_share")
+                        .setLabel("send_photo")
+                        .build());
+            }
+        } else {
+            loadImage((Uri) intent.getParcelableExtra("Uri"));
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        getIntentData(intent);
+    }
+
+    private void handleSendImage(Intent intent) {
+        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (imageUri != null) {
+            loadImage(imageUri);
+        }
     }
 
     private void loadImage(Uri uri) {
         mScaleImageView.setImage(ImageSource.uri(uri));
-        mScaleImageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_USE_EXIF);
+
+        InputStream in = null;
+        try {
+            in = getContentResolver().openInputStream(uri);
+            ExifInterface exifInterface = new ExifInterface(in);
+            // Now you can extract any Exif tag you want
+            // Assuming the image is a JPEG or supported raw format
+
+            int rotation = 0;
+            int orientation = exifInterface.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotation = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotation = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotation = 270;
+                    break;
+            }
+
+            mScaleImageView.setOrientation(rotation);
+
+        } catch (IOException e) {
+            // Handle any errors
+            mScaleImageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_USE_EXIF);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ignored) {}
+            }
+        }
+
         mScaleImageView.setOnImageEventListener(new SubsamplingScaleImageView.OnImageEventListener() {
             @Override
             public void onReady() {
@@ -147,6 +220,11 @@ public class PhotoShareActivity extends tw.kihon.armylogout.ArmyLogoutActivity {
 
             @Override
             public void onTileLoadError(Exception e) {
+
+            }
+
+            @Override
+            public void onPreviewReleased() {
 
             }
         });
