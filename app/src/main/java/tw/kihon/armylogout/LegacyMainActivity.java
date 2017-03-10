@@ -9,7 +9,6 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
 import com.afollestad.materialdialogs.internal.MDButton;
-import tw.kihon.armylogout.settings.SettingsUtils;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -51,6 +50,7 @@ import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import tw.kihon.armylogout.settings.SettingsUtils;
 
 /**
  * Created by kihon on 2016/06/27.
@@ -100,6 +100,7 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
     private List<String> mPeriodList;
     private MilitaryInfo mMilitaryInfo;
     private Tracker mTracker = getTracker();
+    private boolean mUserIsInteracting;
 
     @Override
     protected int getLayoutResource() {
@@ -163,6 +164,12 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
         getHandler().postDelayed(this, 500);
     }
 
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        mUserIsInteracting = true;
+    }
+
     private void initSpinner() {
         mServiceDayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mPeriodList);
         mServiceDayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -171,6 +178,9 @@ public class LegacyMainActivity extends ArmyLogoutActivity {
         mServiceDaySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, final int position, long id) {
+                if (!mUserIsInteracting) {
+                    return;
+                }
                 if (ServiceTime.CUSTOM == ServiceTime.values()[position]) {
                     MaterialDialog dialog = new MaterialDialog.Builder(LegacyMainActivity.this)
                             .title("自訂役期")

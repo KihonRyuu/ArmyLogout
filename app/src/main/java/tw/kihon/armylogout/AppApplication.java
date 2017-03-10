@@ -52,7 +52,6 @@ public class AppApplication extends Application {
         }
         super.onCreate();
 
-        Dexter.initialize(this);
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         mFirebaseAnalytics.setUserId(SettingsUtils.getDeviceId());
         getDefaultTracker().set("&uid", SettingsUtils.getDeviceId());

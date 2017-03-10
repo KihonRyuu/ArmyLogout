@@ -8,14 +8,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.CompositePermissionListener;
-import com.karumi.dexter.listener.single.PermissionListener;
-import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -24,6 +16,8 @@ import org.joda.time.format.DateTimeFormatter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,7 +33,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import java.io.File;
@@ -47,11 +40,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import tw.kihon.armylogout.settings.SettingsUtils;
-
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 /**
  * Created by kihon on 2016/06/29.
@@ -71,13 +63,6 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
     private FirebaseAnalytics mFirebaseAnalytics;
 
     private Uri mFileUri;
-
-    @LayoutRes
-    abstract protected int getLayoutResource();
-
-    public Toolbar getToolbar() {
-        return mToolbar;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +95,36 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
         transLegacyPref();
         mFirebaseAnalytics = AppApplication.getInstance().getFirebaseAnalytics();
         FirebaseMessaging.getInstance().subscribeToTopic("global");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mHandler.post(this);
+    }
+
+    @Override
+    protected void onPause() {
+        mHandler.removeCallbacks(this);
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory("view")
+                .setAction("mode")
+                .setLabel(SettingsUtils.getViewMode() == SettingsUtils.VIEW_MODE_RECYCLER_VIEW ? "New" : "Legacy")
+                .build());
+        SettingsUtils.setMilitaryInfo(mInfo.getJsonString());
+        super.onPause();
+    }
+
+    @Override
+    public void onColorChooserDismissed(@NonNull ColorChooserDialog dialog) {
+
+    }
+
+    @LayoutRes
+    abstract protected int getLayoutResource();
+
+    public Toolbar getToolbar() {
+        return mToolbar;
     }
 
     public Toolbar.OnMenuItemClickListener getOnToolbarMenuItemClickListener() {
@@ -189,7 +204,16 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                 }
                 return true;
             case R.id.action_pick_photo:
-                PermissionListener listener = new PermissionListener() {
+
+                pickPic();
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("feature")
+                        .setAction("photo_share")
+                        .setLabel("pick_photo")
+                        .build());
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SHARE, null);
+
+                /*PermissionListener listener = new PermissionListener() {
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
                         pickPic();
@@ -232,7 +256,7 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
                         .withOpenSettingsButton("設定")
                         .build();
 
-                Dexter.checkPermission(new CompositePermissionListener(listener, snackbarPermissionListener), WRITE_EXTERNAL_STORAGE);
+                Dexter.checkPermission(new CompositePermissionListener(listener, snackbarPermissionListener), WRITE_EXTERNAL_STORAGE);*/
 
                 return true;
             case R.id.action_share:
@@ -360,24 +384,6 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
         return mTracker;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mHandler.post(this);
-    }
-
-    @Override
-    protected void onPause() {
-        mHandler.removeCallbacks(this);
-        mTracker.send(new HitBuilders.EventBuilder()
-                .setCategory("view")
-                .setAction("mode")
-                .setLabel(SettingsUtils.getViewMode() == SettingsUtils.VIEW_MODE_RECYCLER_VIEW ? "New" : "Legacy")
-                .build());
-        SettingsUtils.setMilitaryInfo(mInfo.getJsonString());
-        super.onPause();
-    }
-
     protected void pickPic() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -393,7 +399,13 @@ public abstract class ArmyLogoutActivity extends BaseAppCompatActivity
         File storageDir = AppApplication.getInstance().getExternalCacheDir();
         File imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
 //        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = Uri.fromFile(imageFile));
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", imageFile));
+        List<ResolveInfo> resInfoList= getPackageManager().queryIntentActivities(takePictureIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        mFileUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", imageFile);
+        for (ResolveInfo resolveInfo : resInfoList) {
+            String packageName = resolveInfo.activityInfo.packageName;
+            grantUriPermission(packageName, mFileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mFileUri);
         startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
     }
 

@@ -42,6 +42,12 @@ public class CounterWidget extends AppWidgetProvider {
         context.startService(new Intent(context, UpdateService.class));
     }
 
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        Log.d(TAG, "onReceive: ");
+    }
+
     public static class UpdateService extends Service {
 
         private static final String TAG = "UpdateService";
@@ -68,6 +74,7 @@ public class CounterWidget extends AppWidgetProvider {
                     // Push update for this widget to the home screen
                     ComponentName thisWidget = new ComponentName(UpdateService.this, CounterWidget.class);
                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this);
+//                    appWidgetManager.get
                     appWidgetManager.updateAppWidget(thisWidget, updateViews);
 //                    Log.v(TAG, "widget updated");
 
@@ -96,12 +103,10 @@ public class CounterWidget extends AppWidgetProvider {
 
             mMilitaryInfo = MilitaryInfo.parse(SettingsUtils.getMilitaryInfo());
             mServiceUtil = new ServiceUtil(mMilitaryInfo);
-
             views.setTextViewText(R.id.until_logout_title, mServiceUtil.isLoggedIn() ? "距離返陽還剩下" : "距離入伍還剩下");
             views.setTextViewText(R.id.until_logout_text, mServiceUtil.getRemainingDayWithString());
             views.setTextViewText(R.id.login_percent_text, String.format(Locale.TAIWAN, "%.2f%%", mServiceUtil.getPercentage()));
             views.setProgressBar(R.id.progressBar, 100, (int) mServiceUtil.getPercentage(), false);
-
             views.setInt(R.id.widgetMainLayout, "setBackgroundColor", SettingsUtils.getWidgetBackgroundColor());
             views.setTextColor(R.id.until_logout_title, SettingsUtils.getWidgetTitleColor());
             views.setTextColor(R.id.logout_percent_title, SettingsUtils.getWidgetTitleColor());

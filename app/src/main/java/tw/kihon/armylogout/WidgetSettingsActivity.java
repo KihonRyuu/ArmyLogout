@@ -3,7 +3,6 @@ package tw.kihon.armylogout;
 import com.google.android.gms.analytics.HitBuilders;
 
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
-import tw.kihon.armylogout.settings.SettingsUtils;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -29,6 +28,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import tw.kihon.armylogout.settings.SettingsUtils;
 
 /**
  * Created by kihon on 2016/06/19.
@@ -140,7 +140,12 @@ public class WidgetSettingsActivity extends BaseAppCompatActivity
         mSettingsAdapter.notifyDataSetChanged();
     }
 
-    enum Item {
+    @Override
+    public void onColorChooserDismissed(@NonNull ColorChooserDialog dialog) {
+
+    }
+
+    private enum Item {
 
         Background("背景"),
         Title("標題"),
@@ -158,7 +163,7 @@ public class WidgetSettingsActivity extends BaseAppCompatActivity
         private final Item[] mItems;
         private final LayoutInflater mLayoutInflater;
 
-        public SettingsAdapter(Context context, Item[] items) {
+        SettingsAdapter(Context context, Item[] items) {
             mLayoutInflater = LayoutInflater.from(context);
             mItems = items;
         }
@@ -199,7 +204,7 @@ public class WidgetSettingsActivity extends BaseAppCompatActivity
             @BindView(R.id.handle)
             ImageView handleView;
 
-            public ItemViewHolder(View view) {
+            ItemViewHolder(View view) {
                 super(view);
                 ButterKnife.bind(this, view);
                 subtitle.setVisibility(View.GONE);
