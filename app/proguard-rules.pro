@@ -124,11 +124,13 @@
 -keep class com.soundcloud.android.crop.** { *; }
 -keep interface com.soundcloud.android.crop.** { *; }
 
-#-dontwarn com.google.common.collect.MinMaxPriorityQueue
-#
-#-keepclasseswithmembers public class * {
-#    public static void main(java.lang.String[]);
-#}
+-dontwarn com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar
+
+-dontwarn com.google.common.**
+
+-keepclasseswithmembers public class * {
+    public static void main(java.lang.String[]);
+}
 
 -dontnote com.google.**
 -dontnote android.net.http.*

@@ -25,7 +25,7 @@ android {
     buildTypes {
 
         release {
-            minifyEnabled false
+            minifyEnabled true
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -61,6 +61,7 @@ dependencies {
 
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.google.guava:guava:20.0'
+//    compile 'javax.annotation:jsr250-api:1.0'
 //    compile 'com.facebook.android:facebook-android-sdk:3.22.0'
 
     compile 'com.jakewharton:butterknife:8.5.1'
