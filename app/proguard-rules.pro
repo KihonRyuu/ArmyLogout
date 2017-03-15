@@ -143,3 +143,14 @@
 -dontwarn org.joda.time.**
 -keep class org.joda.time.** { *; }
 -keep interface org.joda.time.** { *; }
+
+# Other settings
+-keep class com.android.**
+-keep class com.google.android.**
+-keep class com.google.android.gms.**
+-keep class com.google.android.gms.location.**
+-keep class com.google.api.client.**
+-keep class com.google.maps.android.**
+-keep class libcore.**
+
+-keep class tw.kihon.armylogout.MilitaryInfo { *; }

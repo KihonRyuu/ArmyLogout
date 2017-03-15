@@ -17,7 +17,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
 //        versionCode 83414004
-        versionCode 85000010
+        versionCode 85000011
         versionName "1.5.3"
         vectorDrawables.useSupportLibrary = true
     }
@@ -27,7 +27,7 @@ android {
         release {
             minifyEnabled true
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', 'proguard-rules-disable-logging.pro'
         }
 
         applicationVariants.all { variant ->
