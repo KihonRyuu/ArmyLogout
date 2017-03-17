@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    tools:context="tw.kihon.armylogout.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -118,7 +118,7 @@
 
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                <com.kihon.android.apps.army_logout.NDSpinner
+                <tw.kihon.armylogout.NDSpinner
                     android:id="@+id/service_day_spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

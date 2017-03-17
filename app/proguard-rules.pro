@@ -124,11 +124,13 @@
 -keep class com.soundcloud.android.crop.** { *; }
 -keep interface com.soundcloud.android.crop.** { *; }
 
-#-dontwarn com.google.common.collect.MinMaxPriorityQueue
-#
-#-keepclasseswithmembers public class * {
-#    public static void main(java.lang.String[]);
-#}
+-dontwarn com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar
+
+-dontwarn com.google.common.**
+
+-keepclasseswithmembers public class * {
+    public static void main(java.lang.String[]);
+}
 
 -dontnote com.google.**
 -dontnote android.net.http.*
@@ -141,3 +143,14 @@
 -dontwarn org.joda.time.**
 -keep class org.joda.time.** { *; }
 -keep interface org.joda.time.** { *; }
+
+# Other settings
+-keep class com.android.**
+-keep class com.google.android.**
+-keep class com.google.android.gms.**
+-keep class com.google.android.gms.location.**
+-keep class com.google.api.client.**
+-keep class com.google.maps.android.**
+-keep class libcore.**
+
+-keep class tw.kihon.armylogout.MilitaryInfo { *; }
