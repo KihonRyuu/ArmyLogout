@@ -6,7 +6,6 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
-import com.karumi.dexter.Dexter;
 
 import android.app.Application;
 import android.support.v7.app.AppCompatDelegate;
