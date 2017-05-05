@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="define_tourguide">year;owner</string>
+	<!-- Author section -->
+	<string name="library_tourguide_author">Tan Jun Rong</string>
+	<string name="library_tourguide_authorWebsite">http://jrcorner.wordpress.com</string>
+	<!-- Library section -->
+	<string name="library_tourguide_libraryName">TourGuide</string>
+	<string name="library_tourguide_libraryDescription">TourGuide is an Android library. It lets you add pointer, overlay and tooltip easily, guiding users on how to use your app. Refer to the example below(this is a trivial example for demo purpose):</string>
+	<string name="library_tourguide_libraryWebsite">https://github.com/worker8/</string>
+	<string name="library_tourguide_libraryVersion">1.0.17</string>
+	<!-- OpenSource section -->
+	<string name="library_tourguide_isOpenSource">true</string>
+	<string name="library_tourguide_repositoryLink">https://github.com/worker8/TourGuide</string>
+	<!-- ClassPath for autoDetect section -->
+	<string name="library_tourguide_classPath">tourguide.tourguide.ToolTip</string>
+	<!-- License section -->
+	<string name="library_tourguide_licenseId">mit</string>
+	<!-- Custom variables section -->
+	<string name="library_tourguide_owner">Tan Jun Rong</string>
+	<string name="library_tourguide_year">2016</string>
+</resources>

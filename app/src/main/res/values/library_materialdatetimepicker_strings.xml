@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="define_materialdatetimepicker">year;owner</string>
+	<!-- Author section -->
+	<string name="library_materialdatetimepicker_author">Wouter Dullaert</string>
+	<string name="library_materialdatetimepicker_authorWebsite">https://github.com/wdullaer/</string>
+	<!-- Library section -->
+	<string name="library_materialdatetimepicker_libraryName">Material DateTime Picker</string>
+	<string name="library_materialdatetimepicker_libraryDescription">Material DateTime Picker tries to offer you the date and time pickers as shown in the Material Design spec, with an easy themable API. The library uses the code from the Android frameworks as a base and tweaked it to be as close as possible to Material Design example.</string>
+	<string name="library_materialdatetimepicker_libraryWebsite">https://github.com/wdullaer/</string>
+	<string name="library_materialdatetimepicker_libraryVersion">3.2.0</string>
+	<!-- OpenSource section -->
+	<string name="library_materialdatetimepicker_isOpenSource">true</string>
+	<string name="library_materialdatetimepicker_repositoryLink">https://github.com/wdullaer/MaterialDateTimePicker</string>
+	<!-- ClassPath for autoDetect section -->
+	<string name="library_materialdatetimepicker_classPath">com.wdullaer.materialdatetimepicker</string>
+	<!-- License section -->
+	<string name="library_materialdatetimepicker_licenseId">apache_2_0</string>
+	<!-- Custom variables section -->
+	<string name="library_materialdatetimepicker_owner">Wouter Dullaert</string>
+	<string name="library_materialdatetimepicker_year">2015</string>
+</resources>

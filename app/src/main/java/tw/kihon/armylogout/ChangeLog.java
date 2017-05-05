@@ -14,10 +14,8 @@
  */
 package tw.kihon.armylogout;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.mikepenz.aboutlibraries.Libs;
+import com.mikepenz.aboutlibraries.LibsBuilder;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -30,6 +28,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class ChangeLog {
 
@@ -154,6 +157,18 @@ public class ChangeLog {
 								: R.string.changelog_title))
 				.setView(wv)
 				.setCancelable(false)
+				.setNeutralButton("開放原始碼授權", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						new LibsBuilder()
+								.withLicenseShown(true)
+								.withAutoDetect(true)
+								.withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+								.withActivityTitle("Attributions")
+								.withFields(R.string.class.getFields())
+								.start(context);
+					}
+				})
 				// OK button
 				.setPositiveButton(
 						context.getResources().getString(
