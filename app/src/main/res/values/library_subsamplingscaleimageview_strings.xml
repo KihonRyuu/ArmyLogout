@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="define_subsamplingscaleimageview">year;owner</string>
+	<!-- Author section -->
+	<string name="library_subsamplingscaleimageview_author">David Morrissey</string>
+	<string name="library_subsamplingscaleimageview_authorWebsite">https://github.com/davemorrissey/</string>
+	<!-- Library section -->
+	<string name="library_subsamplingscaleimageview_libraryName">Subsampling Scale Image View</string>
+	<string name="library_subsamplingscaleimageview_libraryDescription">Highly configurable, easily extendable view with pan and zoom gestures for displaying huge images without loss of detail. Perfect for photo galleries, maps, building plans etc.</string>
+	<string name="library_subsamplingscaleimageview_libraryWebsite">https://github.com/davemorrissey/</string>
+	<string name="library_subsamplingscaleimageview_libraryVersion">3.6.0</string>
+	<!-- OpenSource section -->
+	<string name="library_subsamplingscaleimageview_isOpenSource">true</string>
+	<string name="library_subsamplingscaleimageview_repositoryLink">https://github.com/davemorrissey/subsampling-scale-image-view</string>
+	<!-- ClassPath for autoDetect section -->
+	<string name="library_subsamplingscaleimageview_classPath">com.davemorrissey.labs.subscaleview</string>
+	<!-- License section -->
+	<string name="library_subsamplingscaleimageview_licenseId">apache_2_0</string>
+	<!-- Custom variables section -->
+	<string name="library_subsamplingscaleimageview_owner">David Morrissey</string>
+	<string name="library_subsamplingscaleimageview_year">2016</string>
+</resources>

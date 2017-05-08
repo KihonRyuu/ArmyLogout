@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="define_materialtip">year;owner</string>
+	<!-- Author section -->
+	<string name="library_materialtip_author">Francesco Cannizzaro</string>
+	<string name="library_materialtip_authorWebsite">https://github.com/fcannizzaro/</string>
+	<!-- Library section -->
+	<string name="library_materialtip_libraryName">material-tip</string>
+	<string name="library_materialtip_libraryDescription">Android Library for prompt tip</string>
+	<string name="library_materialtip_libraryWebsite">https://github.com/fcannizzaro/</string>
+	<string name="library_materialtip_libraryVersion">1.0.5</string>
+	<!-- OpenSource section -->
+	<string name="library_materialtip_isOpenSource">true</string>
+	<string name="library_materialtip_repositoryLink">https://github.com/fcannizzaro/material-tip</string>
+	<!-- ClassPath for autoDetect section -->
+	<string name="library_materialtip_classPath">com.github.fcannizzaro.materialtip</string>
+	<!-- License section -->
+	<string name="library_materialtip_licenseId">mit</string>
+	<!-- Custom variables section -->
+	<string name="library_materialtip_owner">Francesco Cannizzaro</string>
+	<string name="library_materialtip_year">2016</string>
+</resources>

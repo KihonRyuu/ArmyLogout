@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+	<string name="define_int_circleview"></string>
+	<!-- Author section -->
+	<string name="library_circleview_author">Jakob Grabner</string>
+	<string name="library_circleview_authorWebsite">https://github.com/jakob-grabner</string>
+	<!-- Library section -->
+	<string name="library_circleview_libraryName">CircleView</string>
+	<string name="library_circleview_libraryDescription">
+        <![CDATA[
+        An animated circle view. Can be used in &apos;value mode&apos; or &apos;spinning mode&apos;. Nice transitions between spinning and value. Can be used as a loading indicator and to show progress or values in a circular manner. In seek mode, it can also be used to set a value.
+        ]]>
+	</string>
+	<string name="library_circleview_libraryWebsite">https://github.com/jakob-grabner/</string>
+	<string name="library_circleview_libraryVersion">1.3</string>
+	<!-- OpenSource section -->
+	<string name="library_circleview_isOpenSource">true</string>
+	<string name="library_circleview_repositoryLink">https://github.com/jakob-grabner/Circle-Progress-View</string>
+	<!-- ClassPath for autoDetect section -->
+	<string name="library_circleview_classPath">at.grabner.circleprogress</string>
+	<!-- License section -->
+	<string name="library_circleview_licenseId">mit</string>
+	<!-- Custom variables section -->
+</resources>
